@@ -76,6 +76,10 @@ void enter_state_root(){
 
 void update_state_root(){
 
+
+  if(/*Record Button Pressed*/){
+    set_state(STATE_SENSE);
+  }
 }
 
 
@@ -85,6 +89,20 @@ void enter_state_ready(){
 
 void update_state_ready(){
 
+  if(/*Record Button Pressed*/){
+    set_state(STATE_ROOT);
+  }
+  else if(/*Upload Button Pressed*/){
+    set_state(STATE_UPLOAD);
+  }
+
+  else if(readings_count > MAX_READINGS){
+    set_state(STATE_WRITEFLASH);
+  }
+
+  else if(time_in_ready > LOG_RATE){
+    set_state(STATE_SENSE);
+  }
 }
 
 
@@ -93,7 +111,10 @@ void enter_state_sense(){
 }
 
 void update_state_sense(){
+  // get sensor readings
+  // add data to buffer
 
+  set_state(STATE_READY);
 }
 
 
@@ -103,6 +124,7 @@ void enter_state_writeflash(){
 
 void update_state_writeflash(){
 
+  set_state(STATE_READY);
 }
 
 
@@ -111,5 +133,9 @@ void enter_state_upload(){
 }
 
 void update_state_upload(){
+  // try to upload
 
+  if(/*Upload successful*/){
+    set_state(STATE_ROOT);
+  }
 }
