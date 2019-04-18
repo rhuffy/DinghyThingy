@@ -2,7 +2,7 @@
 # Dinghy Thingy
 
 
-# By Maya Nigrin, Jose A. Muguira, Xiaoyang Zhuang, and Raymond Huffman
+## By Maya Nigrin, Jose A. Muguira, Xiaoyang Zhuang, and Raymond Huffman
 
 
 ### **Overview**
