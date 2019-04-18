@@ -1,6 +1,12 @@
 #include "fsm.h"
 
+
 STATE_T current_state;
+
+SENSOR_READING_T data_buffer[MAX_READINGS+1] = {0};
+int data_buffer_index;
+
+
 
 /**
  * Calls the correct update function based on current state.
@@ -58,6 +64,7 @@ void set_state(STATE_T new_state){
  * Initializes FSM. Should be called once in setup.
  */
 void init_state(){
+  data_buffer_index = 0;
   set_state(STATE_ROOT);
 }
 
@@ -96,7 +103,7 @@ void update_state_ready(){
     set_state(STATE_UPLOAD);
   }
 
-  else if(readings_count > MAX_READINGS){
+  else if(data_buffer_index >= MAX_READINGS){
     set_state(STATE_WRITEFLASH);
   }
 
@@ -112,7 +119,15 @@ void enter_state_sense(){
 
 void update_state_sense(){
   // get sensor readings
+
+  SENSOR_READING_T current_reading = {
+    .gps = read_gps(),
+    .imu = read_imu(),
+    .time = now() //from time library
+  };
+
   // add data to buffer
+  data_buffer[data_buffer_index++] = current_reading;
 
   set_state(STATE_READY);
 }
@@ -123,6 +138,10 @@ void enter_state_writeflash(){
 }
 
 void update_state_writeflash(){
+
+
+  data_buffer_index = 0;
+  sd_write(data_buffer, MAX_READINGS);
 
   set_state(STATE_READY);
 }

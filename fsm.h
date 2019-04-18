@@ -1,6 +1,13 @@
 #ifndef __FSM_H
 #define __FSM_H
 
+#include <Time.h>
+#include "gps.h"
+#include "imu.h"
+
+
+#define MAX_READINGS 50
+
 typedef enum {
 	STATE_ROOT,
   STATE_READY,
@@ -8,6 +15,13 @@ typedef enum {
   STATE_WRITEFLASH,
 	STATE_UPLOAD
 } STATE_T;
+
+typedef struct {
+  GPS_READING_T gps;
+  IMU_READING_T longitude;
+  time_t time;
+} SENSOR_READING_T;
+
 
 void advance_state();
 void init_state();
