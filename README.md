@@ -38,6 +38,8 @@ The tracks of all boats sailing at the time should be displayed on screen, overl
 
 Visualization can be extended further by using the Google Maps API to produce an interactive zoomable/scrollable map that continues to display animated boat tracks.
 
+![sap sailing](img/sap.png)
+
 Reach goals for visualization (for when everything else is working)
 
 When analyzing the replay of a regatta with many boats, it can be difficult to determine which boats are ahead when they split to opposite sides of the course. This can be roughly determined with a line drawn perpendicular to the current wind direction. This line could be added to the visualization, drawn so it intersects the front of the lead boat.
@@ -47,13 +49,13 @@ Wind conditions can vary greatly across a race course, especially on the Charles
 
 ### **System Block Diagram**
 
-![drawing](https://docs.google.com/a/google.com/drawings/d/12345/export/png)
+![block diagram](img/block_diagram.png)
 
 
 ### **ESP State Machine**
 
 
-![drawing](https://docs.google.com/a/google.com/drawings/d/12345/export/png)
+![fsm](img/fsm.png)
 
 
 ### **Technical Challenges That We Foresee**
