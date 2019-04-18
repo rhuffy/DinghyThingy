@@ -5,7 +5,7 @@
 #include "gps.h"
 #include "imu.h"
 
-
+#define BOAT_NUMBER
 #define MAX_READINGS 50
 
 typedef enum {
@@ -20,6 +20,7 @@ typedef struct {
   GPS_READING_T gps;
   IMU_READING_T longitude;
   time_t time;
+  int boat_id;
 } SENSOR_READING_T;
 
 
