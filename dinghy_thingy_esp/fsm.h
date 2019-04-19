@@ -9,11 +9,11 @@
 #define MAX_READINGS 50
 
 typedef enum {
-	STATE_ROOT,
+  STATE_ROOT,
   STATE_READY,
   STATE_SENSE,
   STATE_WRITEFLASH,
-	STATE_UPLOAD
+  STATE_UPLOAD
 } STATE_T;
 
 typedef struct {
