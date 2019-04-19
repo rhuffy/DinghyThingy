@@ -5,7 +5,7 @@
 #include "gps.h"
 #include "imu.h"
 
-#define BOAT_NUMBER
+#define BOAT_NUMBER 1
 #define MAX_READINGS 50
 
 typedef enum {
