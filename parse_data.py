@@ -6,19 +6,17 @@ Created on Thu Apr 18 13:43:06 2019
 """
 
 import sqlite3
+from datetime import datetime
 
 #_________________________________________________________________________________________________
 # Request handling
 #-------------------------------------------------------------------------------------------------
-
-global categories
 
 db = "__HOME__/final_project/dinghy_thingy.db" # just come up with name of database
 
 def request_handler(request):
     
     #make sure categories is consistent across requests
-    global categories
     
     if request['method']=='POST':
         if 'categories' not in request['form'] or 'data' not in request['form']:
@@ -95,7 +93,10 @@ def parse_csv_data_line(line, categories):
             str_data = str_data_list[i]
             if str_data != None:
                 info = categories[i]
-                data[info["category"]] = info["datatype"](str_data)
+                if info["datatype"] == datetime:
+                    data[info["category"]] = datetime.strptime(str_data.strip(), "%Y-%m-%dT%H:%M:%S.%f")
+                else:
+                    data[info["category"]] = info["datatype"](str_data)
         return tuplefy(data)
 
 def parse_csv_data(data, categories): #data string of info
@@ -114,7 +115,7 @@ def parse_csv_data(data, categories): #data string of info
 #-------------------------------------------------------------------------------------------------
     
 def string_rep_categories(categories):
-    dtype_dict = {str:"text", int:"int", float:"float"}
+    dtype_dict = {str:"text", int:"int", float:"float", datetime:"timing"}
     string = "("
     for d in categories:
         name = d["category"]
