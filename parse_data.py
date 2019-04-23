@@ -40,16 +40,35 @@ def request_handler(request):
             #except:
              #   return  "Error, please try again!"
             
-    elif 'boatnum' not in request['values']:
+    elif 'boatnum' not in request['values'] and 'date' not in request['values']:
         return lookup_database()
-    else:
+    elif 'boatnum' in request['values'] and 'date' in request['values']:
+        
         try:
-            
             boatnum = int(request['values']['boatnum'])
-            
+            date = datetime.strptime(request['values']['date'].strip(), "%Y-%m-%d")
+            return get_dateandboat_data(date, boatnum)
+        except:
+            return  "boatnum must be valid numbers and date must be valid date in format YYYY-MM-DD."
+        
+    elif 'boatnum' in request['values']:
+        
+        try:
+            boatnum = int(request['values']['boatnum'])
             return get_boat_data(boatnum)
         except:
-            return  "Both lat and lon must be valid numbers."
+            return  "boatnum must be valid numbers."
+        
+    elif 'date' in request['values']:
+        
+        try:
+            date = datetime.strptime(request['values']['date'].strip(), "%Y-%m-%d")
+            return get_date_data(date)
+        except:
+            return  "date must be valid date in format YYYY-MM-DD."
+        
+    else:
+        return "Invalid request"
 
 #_________________________________________________________________________________________________
 # Functions for parsing data once it's been extracted from the request
@@ -155,7 +174,7 @@ def lookup_database():
     conn = sqlite3.connect(db)
     c = conn.cursor()
     
-    executed = c.execute('''SELECT * FROM dinghy_thingy;''')
+    executed = c.execute('''SELECT * FROM dinghy_thingy ORDER BY time DESC;''')
     things = executed.fetchall()
     names = [description[0] for description in executed.description]
     
@@ -175,7 +194,7 @@ def get_boat_data(boatnum):
     conn = sqlite3.connect(db)
     c = conn.cursor()
     
-    executed = c.execute('''SELECT * FROM dinghy_thingy WHERE boatnum = ? ORDER BY time ASC;''',(boatnum,) )
+    executed = c.execute('''SELECT * FROM dinghy_thingy WHERE boatnum = ? ORDER BY time DESC;''',(boatnum,) )
     things = executed.fetchall()
     names = [description[0] for description in executed.description]
     
@@ -190,7 +209,53 @@ def get_boat_data(boatnum):
     conn.commit()
     conn.close()
     return printout
+
+def get_date_data(date):
+    conn = sqlite3.connect(db)
+    c = conn.cursor()
     
+    beginning_of_day = date;
+    end_of_day = datetime(date.year,date.month,date.day,23,59,59,999999)
+    
+    executed = c.execute('''SELECT * FROM dinghy_thingy WHERE time > ? AND time < ? ORDER BY time DESC;''',(beginning_of_day, end_of_day,))
+    things = executed.fetchall()
+    names = [description[0] for description in executed.description]
+    
+    printout = ""
+    for cat in names:
+        printout += str(cat) + "\t\t\t"
+    printout+="\n"
+    for row in things:
+        for info in row:
+            printout += str(info) + "\t\t\t"
+        printout += "\n"
+    conn.commit()
+    conn.close()
+    return printout
+
+def get_dateandboat_data(date, boatnum):
+    
+    conn = sqlite3.connect(db)
+    c = conn.cursor()
+    
+    beginning_of_day = date;
+    end_of_day = datetime(date.year,date.month,date.day,23,59,59,999999)
+    
+    executed = c.execute('''SELECT * FROM dinghy_thingy WHERE boatnum = ? AND time > ? AND time < ? ORDER BY time DESC;''',(boatnum, beginning_of_day, end_of_day,))
+    things = executed.fetchall()
+    names = [description[0] for description in executed.description]
+    
+    printout = ""
+    for cat in names:
+        printout += str(cat) + "\t\t\t"
+    printout+="\n"
+    for row in things:
+        for info in row:
+            printout += str(info) + "\t\t\t"
+        printout += "\n"
+    conn.commit()
+    conn.close()
+    return printout
 #_________________________________________________________________________________________________
  
 
