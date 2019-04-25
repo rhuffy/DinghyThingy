@@ -19,7 +19,7 @@ struct IMU_READING_T{
 
 
 void init_imu();
-IMU_READING_T data;
-read_coords(&data);
+//IMU_READING_T data;
+read_imu();
 
 #endif // __IMU_H
