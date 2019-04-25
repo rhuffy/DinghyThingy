@@ -53,7 +53,7 @@ void extractGNRMC_gps(GPS_READING_T* data){
         char* info = strstr(buffer,"GNRMC");
         if (info!=NULL){
             //Serial.println(buffer); for debugging;
-            extract(buffer,data);
+            extract_gps_data(buffer,data);
         }
     }
 }
