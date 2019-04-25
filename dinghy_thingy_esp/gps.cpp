@@ -4,7 +4,7 @@ void init_gps(){
   gps.begin(9600,SERIAL_8N1,32,33);
 }
 
-void get(char* data_array,int s, float* j){
+void get_number_gps(char* data_array,int s, float* j){
     float sum1=0,sum2=0;
     int len=0,flag = 0;
     while(data_array[s]!=','){
@@ -18,7 +18,7 @@ void get(char* data_array,int s, float* j){
     j[1]=s;
 }
 
-void extract(char* data_array){
+void extract_gps_data(char* data_array,GPS_READING_T* data){
     if(data_array[18]=='A'){
         valid=1;
         data->hour = (data_array[7]-48)*10+data_array[8]-48-4;
@@ -27,7 +27,7 @@ void extract(char* data_array){
         data->lat_deg = (data_array[20]-48)*10+data_array[21]-48;
         int i=22;
         float j[2];
-        get(data_array,i,j);
+        get_number_gps(data_array,i,j);
         data->lat_dm = j[0];
         i = j[1];
         data->lat_dir = data_array[++i];
@@ -36,7 +36,7 @@ void extract(char* data_array){
         get(data_array,++i,j);
         data->lon_dm = j[0];
         i = j[1];
-        data->lon_dir = data_array[++i];
+        data.lon_dir = data_array[++i];
         i+=12;
         data->day = (data_array[i]-48)*10+data_array[++i]-48;
         data->month = (data_array[++i]-48)*10+data_array[++i]-48;
@@ -45,6 +45,18 @@ void extract(char* data_array){
     else valid = 0;
 }
 
-void read_gps(GPS_READING_T* data){
- extractGNRMC();
+void extractGNRMC_gps(GPS_READING_T* data){
+    while (gps.available()) {     // If anything comes in Serial1 (pins 0 & 1)
+        gps.readBytesUntil('\n', buffer, BUFFER_LENGTH); // read it and send it out Serial (USB)
+        char* info = strstr(buffer,"GNRMC");
+        if (info!=NULL){
+            //Serial.println(buffer); for debug;
+            extract(buffer,data);
+        }
+    }
+}
+
+GPS_READING_T read_gps(){
+ GPS_READING_T data;
+ extractGNRMC_gps(&data);
 }
