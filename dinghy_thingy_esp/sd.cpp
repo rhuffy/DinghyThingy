@@ -3,7 +3,7 @@
 
 RTC_DATA_ATTR int readingID = 0;
 
-String data_message;
+char data_message[100];
 
 void init_sd(){
   // Initialize SD card
