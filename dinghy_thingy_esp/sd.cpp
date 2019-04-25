@@ -42,12 +42,11 @@ void sd_write(SENSOR_READING_T *data_buffer, int size){
     sprintf(data_message, "%d,%d,%f,%f,%f,%f,%f\r\n",
     data_buffer[i]->boat_id,
     data_buffer[i]->time,
-    data_buffer[i]->gps->latitude,  // write data
-    data_buffer[i]->gps->longitude,
-    data_buffer[i]->imu->x_accel,
-    data_buffer[i]->imu->y_accel,
-    data_buffer[i]->imu->z_accel
-    );
+    data_buffer[i]->gps.latitude,  // write data
+    data_buffer[i]->gps.longitude,
+    data_buffer[i]->imu.x_accel,
+    data_buffer[i]->imu.y_accel,
+    data_buffer[i]->imu.z_accel);
     Serial.print("Save data: ");
     Serial.println(dataMessage);
     appendFile(SD, "/data.txt", dataMessage.c_str());
