@@ -1,7 +1,6 @@
 #ifndef __FSM_H
 #define __FSM_H
 
-#include <Time.h>
 #include "gps.h"
 #include "imu.h"
 
@@ -18,8 +17,7 @@ typedef enum {
 
 typedef struct {
   GPS_READING_T gps;
-  IMU_READING_T longitude;
-  time_t time;
+  IMU_READING_T imu;
   int boat_id;
 } SENSOR_READING_T;
 

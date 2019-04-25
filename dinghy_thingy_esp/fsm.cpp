@@ -123,7 +123,6 @@ void update_state_sense(){
   SENSOR_READING_T current_reading = {
     .gps = read_gps(),
     .imu = read_imu(),
-    .time = now(), //from time library
     .boat_id = BOAT_NUMBER
   };
 

@@ -1,15 +1,39 @@
 #ifndef __GPS_H
 #define __GPS_H
 
-//TODO method headers and constant definitions here.
+#include<Wire.h>
+#include<string.h>
 
-typedef struct {
-  float latitude;
-  float longitude;
-} GPS_READING_T;
+#include <SPI.h>
+#include <math.h>
 
+HardwareSerial gps(2); //instantiate approporiate Serial object for GPS
 
-void init_gps();
-GPS_READING_T read_gps();
+const int BUFFER_LENGTH = 200;  //size of char array we'll use for
+char buffer[BUFFER_LENGTH] = {0}; //dump chars into the
+
+bool valid; //is the data valid
+int lat_deg; //degrees portion of lattitude
+float lat_dm; //latitude decimal minutes
+char lat_dir; //latitude direction
+int lon_deg; //longitude in degrees
+float lon_dm; //longitude decimal minutes
+char lon_dir; //longitude direction
+
+struct GPS_READING_T{
+    float latitude //in degrees
+    float longtitude //in degrees
+    int year; //year
+    int month; //month
+    int day; //day of month
+    int hour; //hour (24 clock GMT)
+    int minute; //minute
+    int second; //second
+};
+
+//initialize gps
+init_gps();
+//read gps data
+read_gps();
 
 #endif // __GPS_H

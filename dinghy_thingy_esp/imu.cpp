@@ -1,17 +1,30 @@
-#include "gps.h"
+#include "imu.h"
 
 void init_imu(){
-  // stuff that should be in setup()
+    Serial.begin(115200); //for debugging if needed.
+    //tft.init();
+    //tft.setRotation(2);
+    //tft.setTextSize(1);
+    //tft.fillScreen(BACKGROUND);
+    if (imu.setupIMU(1)){
+        Serial.println("IMU Connected!");
+    }else{
+        Serial.println("IMU Not Connected :/");
+        Serial.println("Restarting");
+        ESP.restart(); // restart the ESP (proper way)
+    }
 }
 
-GPS_READING_T read_imu(){
+IMU_READING_T read_imu(){
+    imu.readAccelData(imu.accelCount);//read imu
+    //the unit is in g.
 
+    IMU_READING_T current_reading = {
+      .x_accel = imu.accelCount[0]*imu.aRes;
+      .y_accel = imu.accelCount[1]*imu.aRes;
+      //there might be a offset for z; not sure if it's just my device
+      .z_accel =imu.accelCount[2]*imu.aRes;
+    }
 
-  GPS_READING_T reading = {
-  .x_accel = 121.9,
-  .y_accel = 0.95,
-  .z_accel = 1.331
-  };
-
-  return reading;
+    return current_reading;
 }
