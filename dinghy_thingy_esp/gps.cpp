@@ -1,7 +1,7 @@
 #include "gps.h"
 
 void init_gps(){
-  // stuff that should be in setup()
+  gps.begin(9600,SERIAL_8N1,32,33);
 }
 
 GPS_READING_T read_gps(){

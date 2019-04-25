@@ -15,11 +15,11 @@ struct IMU_READING_T{
   float y_accel;
   float z_accel;
   // change this or add more fields for gyroscope
-}
+};
 
 
 void init_imu();
 IMU_READING_T data;
-IMU_READING_T read_coords(&data);
+read_coords(&data);
 
 #endif // __IMU_H

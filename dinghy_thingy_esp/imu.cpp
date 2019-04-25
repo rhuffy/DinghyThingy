@@ -15,7 +15,7 @@ void init_imu(){
     }
 }
 
-IMU_READING_T read_imu(IMU_READING_T* data){
+void read_imu(IMU_READING_T* data){
     imu.readAccelData(imu.accelCount);//read imu
     //the unit is in g.
     x_accel = imu.accelCount[0]*imu.aRes;
