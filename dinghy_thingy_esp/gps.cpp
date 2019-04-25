@@ -21,26 +21,26 @@ void get(char* data_array,int s, float* j){
 void extract(char* data_array){
     if(data_array[18]=='A'){
         valid=1;
-        hour = (data_array[7]-48)*10+data_array[8]-48-4;
-        minute = (data_array[9]-48)*10+data_array[10]-48;
-        second = (data_array[11]-48)*10+data_array[12]-48;
-        lat_deg = (data_array[20]-48)*10+data_array[21]-48;
+        data->hour = (data_array[7]-48)*10+data_array[8]-48-4;
+        data->minute = (data_array[9]-48)*10+data_array[10]-48;
+        data->second = (data_array[11]-48)*10+data_array[12]-48;
+        data->lat_deg = (data_array[20]-48)*10+data_array[21]-48;
         int i=22;
         float j[2];
         get(data_array,i,j);
-        lat_dm = j[0];
+        data->lat_dm = j[0];
         i = j[1];
-        lat_dir = data_array[++i];
+        data->lat_dir = data_array[++i];
         i+=2;
-        lon_deg = (data_array[i]-48)*100+(data_array[++i]-48)*10+(data_array[++i]-48);
+        data->lon_deg = (data_array[i]-48)*100+(data_array[++i]-48)*10+(data_array[++i]-48);
         get(data_array,++i,j);
-        lon_dm = j[0];
+        data->lon_dm = j[0];
         i = j[1];
-        lon_dir = data_array[++i];
+        data->lon_dir = data_array[++i];
         i+=12;
-        day = (data_array[i]-48)*10+data_array[++i]-48;
-        month = (data_array[++i]-48)*10+data_array[++i]-48;
-        year = (data_array[++i]-48)*10+data_array[++i]-48;
+        data->day = (data_array[i]-48)*10+data_array[++i]-48;
+        data->month = (data_array[++i]-48)*10+data_array[++i]-48;
+        data->year = (data_array[++i]-48)*10+data_array[++i]-48;
     }
     else valid = 0;
 }
