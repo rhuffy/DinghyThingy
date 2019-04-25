@@ -35,7 +35,7 @@ void extract_gps_data(char* data_array,GPS_READING_T* data){
         lat_dir = data_array[++i];
         i+=2;
         lon_deg = (data_array[i]-48)*100+(data_array[++i]-48)*10+(data_array[++i]-48);
-        get(data_array,++i,j);
+        get_number_gps(data_array,++i,j);
         lon_dm = j[0];
         i = j[1];
         data.lon_dir = data_array[++i];
@@ -66,4 +66,6 @@ GPS_READING_T read_gps(){
     if(lat_dir != 'N')data.latitude*=-1;
     data.longitude = lon_deg+lon_dm/60;
     if(lon_dir != 'E')data.longitude*=-1;
+
+    return data;
 }
