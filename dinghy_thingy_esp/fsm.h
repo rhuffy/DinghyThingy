@@ -18,7 +18,7 @@ typedef enum {
 
 typedef struct {
   GPS_READING_T gps;
-  IMU_READING_T longitude;
+  IMU_READING_T imu;
   time_t time;
   int boat_id;
 } SENSOR_READING_T;
