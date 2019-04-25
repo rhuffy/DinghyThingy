@@ -21,7 +21,7 @@ void get(char* data_array,int s, float* j){
 void extract(char* data_array){
     if(data_array[18]=='A'){
         valid=1;
-        hour = (data_array[7]-48)*10+data_array[8]-48;
+        hour = (data_array[7]-48)*10+data_array[8]-48-4;
         minute = (data_array[9]-48)*10+data_array[10]-48;
         second = (data_array[11]-48)*10+data_array[12]-48;
         lat_deg = (data_array[20]-48)*10+data_array[21]-48;
