@@ -1,4 +1,5 @@
 #include "fsm.h"
+#include "upload.h"
 
 void setup(){
   init_state();
