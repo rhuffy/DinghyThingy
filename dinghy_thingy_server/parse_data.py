@@ -7,12 +7,14 @@ Created on Thu Apr 18 13:43:06 2019
 
 import sqlite3
 from datetime import datetime
+import pandas as pd
 
 #_________________________________________________________________________________________________
 # Request handling
 #-------------------------------------------------------------------------------------------------
 
-db = "__HOME__/final_project/dinghy_thingy.db" # just come up with name of database
+db = "__HOME__/final_project/dinghy_thingy.db" # database for server
+#db = "dinghy_thingy.db" # database for on-computer testing
 
 def request_handler(request):
     
@@ -47,7 +49,7 @@ def request_handler(request):
         try:
             boatnum = int(request['values']['boatnum'])
             date = datetime.strptime(request['values']['date'].strip(), "%Y-%m-%d")
-            return get_dateandboat_data(date, boatnum)
+            return embed_map(get_dateandboat_data(date, boatnum))
         except:
             return  "boatnum must be valid numbers and date must be valid date in format YYYY-MM-DD."
         
@@ -55,7 +57,7 @@ def request_handler(request):
         
         try:
             boatnum = int(request['values']['boatnum'])
-            return get_boat_data(boatnum)
+            return print_boat_data(boatnum)
         except:
             return  "boatnum must be valid numbers."
         
@@ -63,7 +65,7 @@ def request_handler(request):
         
         try:
             date = datetime.strptime(request['values']['date'].strip(), "%Y-%m-%d")
-            return get_date_data(date)
+            return print_date_data(date)
         except:
             return  "date must be valid date in format YYYY-MM-DD."
         
@@ -190,7 +192,7 @@ def lookup_database():
     conn.close()
     return printout
 
-def get_boat_data(boatnum):
+def print_boat_data(boatnum):
     conn = sqlite3.connect(db)
     c = conn.cursor()
     
@@ -210,7 +212,7 @@ def get_boat_data(boatnum):
     conn.close()
     return printout
 
-def get_date_data(date):
+def print_date_data(date):
     conn = sqlite3.connect(db)
     c = conn.cursor()
     
@@ -233,7 +235,7 @@ def get_date_data(date):
     conn.close()
     return printout
 
-def get_dateandboat_data(date, boatnum):
+def print_dateandboat_data(date, boatnum):
     
     conn = sqlite3.connect(db)
     c = conn.cursor()
@@ -257,6 +259,49 @@ def get_dateandboat_data(date, boatnum):
     conn.close()
     return printout
 #_________________________________________________________________________________________________
- 
+# Google Maps API preparation and interaction functions
+#-------------------------------------------------------------------------------------------------
 
+def get_dateandboat_data(date, boatnum):
+    
+    conn = sqlite3.connect(db)
+    c = conn.cursor()
+    
+    beginning_of_day = date;
+    end_of_day = datetime(date.year,date.month,date.day,23,59,59,999999)
+    
+    executed = c.execute('''SELECT * FROM dinghy_thingy WHERE boatnum = ? AND time > ? AND time < ? ORDER BY time ASC;''',(boatnum, beginning_of_day, end_of_day,))
+    things = executed.fetchall()
+    names = [description[0] for description in executed.description]
+    
+    df = pd.DataFrame(data=things, columns=names)
+    return df
 
+def get_origin(df):
+    return str(df[0:1]["lat"].iloc[0])+","+str(df[0:1]["lon"].iloc[0])
+
+def get_destination(df):
+    return str(df[-1:]["lat"].iloc[0])+","+str(df[-1:]["lon"].iloc[0])
+
+def get_locations(df):
+    locations=""
+    rows = df.shape[0]
+    for i in range(0,rows):
+        locations+=str(df[i:i+1]["lat"].iloc[0])+","+str(df[i:i+1]["lon"].iloc[0])+"%7C"
+    return locations[:-3]
+
+def get_markers(string_of_locations):
+    return "size:tiny%7Ccolor:black%7C" + string_of_locations
+
+def get_path(string_of_locations):
+    return "color:black%7Cweight:1%7C" + string_of_locations
+
+def embed_map(df):
+    
+    MY_API_KEY = "AIzaSyB4-QmxO-jJnljJD1dNpnZ85AcgbyCMjyw"
+    string_of_locations = get_locations(df)
+    markers = get_markers(string_of_locations)
+    path = get_path(string_of_locations)
+    request_string = "https://maps.googleapis.com/maps/api/staticmap?key={}&size=400x400&markers={}&path={}".format(MY_API_KEY,markers,path)
+    return '''<iframe width="400" height="400" frameborder="0" style="border:0" src={} allowfullscreen></iframe>'''.format(request_string)
+    
