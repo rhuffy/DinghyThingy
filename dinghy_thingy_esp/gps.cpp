@@ -63,7 +63,7 @@ GPS_READING_T read_gps(){
     extractGNRMC_gps(&data);
     //convert latitude and longtitude into degrees
     data.latitude = lat_deg+lat_dm/60;
-    if(lat_dir != 'N')latitude*=-1;
+    if(lat_dir != 'N')data.latitude*=-1;
     data.longitude = lon_deg+lon_dm/60;
-    if(lon_dir != 'E')longitude*=-1;
+    if(lon_dir != 'E')data.longitude*=-1;
 }
