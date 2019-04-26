@@ -126,6 +126,8 @@ def parse_csv_data(data, categories): #data string of info
         data_lines = data.split("\n")
     elif "\\n" in data:
         data_lines = data.split("\\n")
+    else:
+        return [parse_csv_data_line(data, categories)]
     data = []
     for line in data_lines:
         data.append(parse_csv_data_line(line, categories))
@@ -283,6 +285,13 @@ def get_origin(df):
 def get_destination(df):
     return str(df[-1:]["lat"].iloc[0])+","+str(df[-1:]["lon"].iloc[0])
 
+def get_waypoints(df):
+    waypoints=""
+    rows = df.shape[0]
+    for i in range(1,rows-1):
+        waypoints+=str(df[i:i+1]["lat"].iloc[0])+","+str(df[i:i+1]["lon"].iloc[0])+"%7C"
+    return waypoints[:-3]
+
 def get_locations(df):
     locations=""
     rows = df.shape[0]
@@ -290,8 +299,8 @@ def get_locations(df):
         locations+=str(df[i:i+1]["lat"].iloc[0])+","+str(df[i:i+1]["lon"].iloc[0])+"%7C"
     return locations[:-3]
 
-def get_markers(string_of_locations):
-    return "size:tiny%7Ccolor:black%7C" + string_of_locations
+def get_markers(df):
+    return "size:tiny%7Ccolor:green%7C" + get_origin(df) + "&markers=size:tiny%7Ccolor:black%7C" + get_waypoints(df) + "&markers=size:tiny%7Ccolor:red%7C" + get_destination(df)
 
 def get_path(string_of_locations):
     return "color:black%7Cweight:1%7C" + string_of_locations
@@ -300,8 +309,8 @@ def embed_map(df):
     
     MY_API_KEY = "AIzaSyB4-QmxO-jJnljJD1dNpnZ85AcgbyCMjyw"
     string_of_locations = get_locations(df)
-    markers = get_markers(string_of_locations)
+    markers = get_markers(df)
     path = get_path(string_of_locations)
     request_string = "https://maps.googleapis.com/maps/api/staticmap?key={}&size=400x400&markers={}&path={}".format(MY_API_KEY,markers,path)
-    return '''<iframe width="400" height="400" frameborder="0" style="border:0" src={} allowfullscreen></iframe>'''.format(request_string)
+    return '''<!DOCTYPE html>\n<html>\n\t<head>\n\t\t<meta charset="utf-8">\n\t\t<meta name="viewport" content="width=device-width">\n\t\t<title>Dinghy Thingy</title>\n\t</head>\n\t<body>\n\t\t<p><b>Path of the boat over time:</b></p>\n\t\t<img src={} alt="Smiley face" >\n\t\t<p> Green is where is started, red is where it ended; </p>\n\t</body>\n</html>'''.format(request_string)
     
