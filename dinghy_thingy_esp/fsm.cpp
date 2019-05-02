@@ -64,6 +64,8 @@ void set_state(STATE_T new_state){
  * Initializes FSM. Should be called once in setup.
  */
 void init_state(){
+  pinMode(BOP_BUTTON_PIN, INPUT_PULLUP);
+  pinMode(START_BUTTON_PIN, INPUT_PULLUP);
   data_buffer_index = 0;
   set_state(STATE_ROOT);
 }
@@ -78,28 +80,28 @@ void init_state(){
 // update_state_XXX() is called repeatedly while in the associated state.
 
 void enter_state_root(){
-
+  Serial.println("[ROOT]");
 }
 
 void update_state_root(){
 
 
-  if(/*Record Button Pressed*/){
+  if(!digitalRead(RECORD_BUTTON_PIN)){
     set_state(STATE_SENSE);
   }
 }
 
 
 void enter_state_ready(){
-
+    Serial.println("[READY]");
 }
 
 void update_state_ready(){
 
-  if(/*Record Button Pressed*/){
+  if(!digitalRead(RECORD_BUTTON_PIN)){
     set_state(STATE_ROOT);
   }
-  else if(/*Upload Button Pressed*/){
+  else if(!digitalRead(UPLOAD_BUTTON_PIN)){
     set_state(STATE_UPLOAD);
   }
 
@@ -114,7 +116,7 @@ void update_state_ready(){
 
 
 void enter_state_sense(){
-
+  Serial.println("[SENSE]");
 }
 
 void update_state_sense(){
@@ -134,7 +136,7 @@ void update_state_sense(){
 
 
 void enter_state_writeflash(){
-
+  Serial.println("[WRITEFLASH]");
 }
 
 void update_state_writeflash(){
@@ -148,7 +150,7 @@ void update_state_writeflash(){
 
 
 void enter_state_upload(){
-
+  Serial.println("[UPLOAD]");
 }
 
 void update_state_upload(){

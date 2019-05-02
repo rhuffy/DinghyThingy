@@ -7,6 +7,9 @@
 #define BOAT_NUMBER 1
 #define MAX_READINGS 50
 
+#define RECORD_BUTTON_PIN 16
+#define UPLOAD_BUTTON_PIN 17
+
 typedef enum {
   STATE_ROOT,
   STATE_READY,

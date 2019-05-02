@@ -28,7 +28,7 @@ void init_sd(){
   if(!file) {
     Serial.println("File doens't exist");
     Serial.println("Creating file...");
-    writeFile(SD, "/data.txt", "Reading ID, Date, Hour, Temperature \r\n");
+    writeFile(SD, "/data.txt", "int boatnum,datetime time,float lat,float lon,float x_accel,float y_accel,float z_accel \r\n");
   }
   else {
     Serial.println("File already exists");
@@ -85,4 +85,21 @@ void appendFile(fs::FS &fs, const char * path, const char * message) {
     Serial.println("Append failed");
   }
   file.close();
+}
+
+// Read data from the SD card (DON'T MODIFY THIS FUNCTION)
+void readFile(fs::FS &fs, const char * path){
+    Serial.printf("Reading file: %s\n", path);
+
+    File file = fs.open(path);
+    if(!file){
+        Serial.println("Failed to open file for reading");
+        return;
+    }
+
+    Serial.print("Read from file: ");
+    while(file.available()){
+        Serial.write(file.read());
+    }
+    file.close();
 }
