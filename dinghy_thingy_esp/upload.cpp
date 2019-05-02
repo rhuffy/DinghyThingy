@@ -11,7 +11,6 @@
 
 
 char request_buffer[1000];
-char response_buffer[1000];
 
 uint8_t char_append(char* buff, char c, uint16_t buff_size) {
         int len = strlen(buff);
@@ -58,7 +57,7 @@ void do_http_request(char* host, char* request, char* response, uint16_t respons
 
 
 
-void send_info(char* info){
+void send_info(char* info, char* response_buffer){
   char body[1000];
   sprintf(body,"categories=int boatnum, datetime time, float lat, float lon, float x_accel, float y_accel, float z_accel&data=%s",info);
   int body_len = strlen(body);
@@ -70,4 +69,5 @@ void send_info(char* info){
    strcat(request_buffer,body); 
    strcat(request_buffer,"\r\n");
    do_http_request("608dev.net", request_buffer, response_buffer, 1000, 6000,true);
+   return;
 }
