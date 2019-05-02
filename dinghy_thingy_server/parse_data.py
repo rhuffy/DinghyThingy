@@ -47,18 +47,18 @@ def request_handler(request):
                 
                 return 1
             except:
-                return  "0
+                return  0
             
     elif 'boatnum' not in request['values'] and 'date' not in request['values']:
         return lookup_database()
     elif 'boatnum' in request['values'] and 'date' in request['values']:
         
-        #try:
+        try:
             boatnum = int(request['values']['boatnum'])
             date = datetime.strptime(request['values']['date'].strip(), "%Y-%m-%d")
             return response(get_dateandboat_data(date, boatnum))
-        #except:
-         #   return  "boatnum must be valid numbers and date must be valid date in format YYYY-MM-DD."
+        except:
+            return  "boatnum must be valid numbers and date must be valid date in format YYYY-MM-DD."
         
     elif 'boatnum' in request['values']:
         
