@@ -1,4 +1,40 @@
-#include "gps.h"
+#include <Wire.h>
+#include <string.h>
+
+#include <SPI.h>
+#include <math.h>
+
+HardwareSerial gps(2); //instantiate approporiate Serial object for GPS
+
+const int BUFFER_LENGTH = 200;  //size of char array we'll use for
+char buffer[BUFFER_LENGTH] = {0}; //dump chars into the
+
+bool valid; //is the data valid
+int lat_deg; //degrees portion of lattitude
+float lat_dm; //latitude decimal minutes
+char lat_dir; //latitude direction
+int lon_deg; //longitude in degrees
+float lon_dm; //longitude decimal minutes
+char lon_dir; //longitude direction
+
+struct GPS_READING_T{
+    float latitude; //in degrees
+    float longitude; //in degrees
+    int year; //year
+    int month; //month
+    int day; //day of month
+    int hour; //hour (24 clock GMT)
+    int minute; //minute
+    int second; //second
+};
+
+// //initialize gps
+// void init_gps();
+// //read gps data
+// void get_number_gps(char* data_array,int s, float* j);
+// void extract_gps_data(char* data_array,GPS_READING_T* data);
+// void extractGNRMC_gps(GPS_READING_T* data);
+// GPS_READING_T read_gps();
 
 void init_gps(){
   gps.begin(9600,SERIAL_8N1,32,33);
@@ -38,7 +74,7 @@ void extract_gps_data(char* data_array,GPS_READING_T* data){
         get_number_gps(data_array,++i,j);
         lon_dm = j[0];
         i = j[1];
-        data.lon_dir = data_array[++i];
+        lon_dir = data_array[++i];
         i+=12;
         data->day = (data_array[i]-48)*10+data_array[++i]-48;
         data->month = (data_array[++i]-48)*10+data_array[++i]-48;
@@ -61,7 +97,7 @@ void extractGNRMC_gps(GPS_READING_T* data){
 GPS_READING_T read_gps(){
     GPS_READING_T data;
     extractGNRMC_gps(&data);
-    //convert latitude and longtitude into degrees
+    //convert latitude and longitude into degrees
     data.latitude = lat_deg+lat_dm/60;
     if(lat_dir != 'N')data.latitude*=-1;
     data.longitude = lon_deg+lon_dm/60;

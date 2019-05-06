@@ -1,13 +1,49 @@
-#include "fsm.h"
-#include "upload.h"
+#define BOAT_NUMBER 1
+#define MAX_READINGS 50
 
+#define RECORD_BUTTON_PIN 16
+#define UPLOAD_BUTTON_PIN 17
+
+#define LOG_RATE 50
+
+typedef enum {
+  STATE_ROOT,
+  STATE_READY,
+  STATE_SENSE,
+  STATE_WRITEFLASH,
+  STATE_UPLOAD
+} STATE_T;
+
+typedef struct {
+  GPS_READING_T gps;
+  IMU_READING_T imu;
+  int boat_id;
+} SENSOR_READING_T;
 
 STATE_T current_state;
 
 SENSOR_READING_T data_buffer[MAX_READINGS+1] = {0};
-int data_buffer_index;
+int data_buffer_index, time_in_ready;
 
 
+
+// void advance_state();
+// void init_state();
+// void set_state(STATE_T new_state);
+// void enter_state_root();
+// void update_state_root();
+//
+// void enter_state_ready();
+// void update_state_ready();
+//
+// void enter_state_sense();
+// void update_state_sense();
+// 
+// void enter_state_writeflash();
+// void update_state_writeflash();
+//
+// void enter_state_upload();
+// void update_state_upload();
 
 /**
  * Calls the correct update function based on current state.
@@ -65,8 +101,8 @@ void set_state(STATE_T new_state){
  * Initializes FSM. Should be called once in setup.
  */
 void init_state(){
-  pinMode(BOP_BUTTON_PIN, INPUT_PULLUP);
-  pinMode(START_BUTTON_PIN, INPUT_PULLUP);
+  pinMode(RECORD_BUTTON_PIN, INPUT_PULLUP);
+  pinMode(UPLOAD_BUTTON_PIN, INPUT_PULLUP);
   data_buffer_index = 0;
   set_state(STATE_ROOT);
 }
@@ -155,7 +191,12 @@ void enter_state_upload(){
 }
 
 void update_state_upload(){
-  char dat[] = "22, 2019-04-24T13:29:13.5, 42.357, -71.091, .01, .01, 59.04\n227,  2019-02-23T13:32:16.5, 42.355, -71.094, .1, .1, 589.09\n22, 2019-04-24T13:32:15.5, 42.356, -71.094, .13, .13, 59.04\n22, 2019-04-24T13:35:16.8, 42.353, -71.100, .3, .3, 59.04";
+
+  // char dat[] = "22, 2019-04-24T13:29:13.5, 42.357, -71.091, .01, .01, 59.04\n227,  2019-02-23T13:32:16.5, 42.355, -71.094, .1, .1, 589.09\n22, 2019-04-24T13:32:15.5, 42.356, -71.094, .13, .13, 59.04\n22, 2019-04-24T13:35:16.8, 42.353, -71.100, .3, .3, 59.04";
+  char dat[100];
+  readFile(SD, "/data.txt", dat);
+  Serial.println(dat);
+  //readFile()
   char response[1000];
   send_info(dat,response);
   if(!strcmp(response,"1")){

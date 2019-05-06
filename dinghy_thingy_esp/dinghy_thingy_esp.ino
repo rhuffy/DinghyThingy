@@ -1,11 +1,8 @@
-#include "fsm.h"
-#include "upload.h"
-
 void setup(){
   init_sd();
   init_state();
   init_gps();
-  init_imu()
+  init_imu();
 }
 
 void loop(){
