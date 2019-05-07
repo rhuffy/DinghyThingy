@@ -34,12 +34,12 @@ def request_handler(request):
             return 0
         else:
             try:
-                
+                #get categories from post
                 str_categories = request['form']['categories']
                 categories = parse_csv_categories(str_categories)
                 create_database(categories)
             
-                
+                #get data from post
                 data = request['form']['data']
                 list_of_data_tuples = parse_csv_data(data, categories)
                 
@@ -47,9 +47,9 @@ def request_handler(request):
                     if data_tuple != None:
                         insert_into_database(data_tuple)
                 
-                return 1
+                return 1 #data was added to database succesfully
             except:
-                return  0
+                return  0 #there was an error
             
     elif 'boatnum' not in request['values'] and 'date' not in request['values']:
         return response_no_param()
@@ -381,7 +381,7 @@ def single_boat_response(date, boatnum):
     #return '''<!DOCTYPE html>\n<html>\n\t<head>\n\t\t<meta charset="utf-8">\n\t\t<meta name="viewport" content="width=device-width">\n\t\t<title>Dinghy Thingy</title>\n\t</head>\n\t<body>\n\t\t<p><b>Path of the boat over time:</b></p>\n\t\t<img src={} alt="Map of boat path" >\n\t\t<p> Green is where is started, red is where it ended; </p>\n\t\t<p><b>Heel of the boat over time:</b></p>\n\t\t<img src={} alt="Plot of heel of boat" >\n\n\t</body>\n</html>'''.format(request_string, img)
     return '''<!DOCTYPE html>\n<html>\n\t<head>\n\t\t<meta charset="utf-8">\n\t\t<meta name="viewport" content="width=device-width">\n\t\t<title>Dinghy Thingy</title>\n\t</head>\n\t<body>\n\t\t<p><b>Path of the boat over time:</b></p>\n\t\t<img src={} alt="Map of boat path" >\n\t\t<p> Green is where is started, red is where it ended; </p>\n\t\t<p><b>Heel of the boat over time:</b></p>\n\t\t<iframe src={} style="border:none;" height="500" width="500"></iframe>\n\n\t</body>\n</html>'''.format(request_string, img)
 
-
+#same as set_up_webpage_without_date except does it from specified date only
 def set_up_webpage(date, boatnum):
     df = get_dateandboat_data(date, boatnum)
     #preapre boatnum link
@@ -402,6 +402,10 @@ def set_up_webpage(date, boatnum):
     
     return "<a href=\""+ boat_file +"\"> Boat "+str(boatnum)+"</a>"
 
+#calls function to get boat data from database as dataframe;
+#calls other functions to turn that data into visualizations
+#reads template html file, replaces text in template with visualizations,
+#   writes modified content to new html file
 def set_up_webpage_without_date(boatnum):
     df = get_boat_data(boatnum)
     #preapre boatnum link
@@ -410,8 +414,6 @@ def set_up_webpage_without_date(boatnum):
     
     f=open(home+"boat.html", "r")
     contents = f.read()
-    #print(contents)
-    #print("______________")
     new_contents = contents.replace("{googlemaps}",request_string)
     new_contents = new_contents.replace("{heel}",img)
     new_contents = new_contents.replace("{home}", home)
@@ -422,7 +424,7 @@ def set_up_webpage_without_date(boatnum):
     
     return "<a href=\""+ boat_file +"\"> Boat "+str(boatnum)+"</a>"
     
-  
+#does same as response_no_param except only for data on specified date
 def response(date):
     
     conn = sqlite3.connect(db)
@@ -454,6 +456,10 @@ def response(date):
       f2.write(new_contents)
       return new_contents
   
+# gets all boatnumbers from database,
+# creates new webpage (by calling function) for each boat
+# takes response from that function (aka link to boat html page) and replaces
+#   blank text in template to get links to boat pages on website      
 def response_no_param():
     
     conn = sqlite3.connect(db)
