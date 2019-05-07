@@ -1,8 +1,9 @@
+// void send_info(char* info);
+
 #include <cstdlib>
 #include <string.h>
 #include <TFT_eSPI.h>
 #include <WiFi.h>
-#include "upload.h"
 
 
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -25,9 +26,9 @@ void do_http_request(char* host, char* request, char* response, uint16_t respons
   if (client.connect(host, 80)) { //try to connect to host on port 80
     if (serial) Serial.print(request);
     client.print(request);
-    memset(response, 0, response_size); 
+    memset(response, 0, response_size);
     uint32_t count = millis();
-    while (client.connected()) { 
+    while (client.connected()) {
       client.readBytesUntil('\n',response,response_size);
       if (serial) Serial.println(response);
       if (strcmp(response,"\r")==0) { //found a blank line!
@@ -36,20 +37,20 @@ void do_http_request(char* host, char* request, char* response, uint16_t respons
       memset(response, 0, response_size);
       if (millis()-count>response_timeout) break;
     }
-    memset(response, 0, response_size);  
+    memset(response, 0, response_size);
     count = millis();
     while (client.available()) { //read out remaining text (body of response)
       char_append(response,client.read(),1000);
     }
     if (serial) Serial.println(response);
     client.stop();
-    if (serial) Serial.println("-----------");  
+    if (serial) Serial.println("-----------");
   }else{
     if (serial) Serial.println("connection failed :/");
     if (serial) Serial.println("wait 0.5 sec...");
     client.stop();
   }
-} 
+}
 
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 //Main function for the file to make Post requests to the server with the information
@@ -64,9 +65,9 @@ void send_info(char* info, char* response_buffer){
   sprintf(request_buffer,"POST http://608dev.net/sandbox/sc/mayigrin/final_project/parse_data.py HTTP/1.1\r\n");
    strcat(request_buffer,"Host: 608dev.net\r\n");
    strcat(request_buffer,"Content-Type: application/x-www-form-urlencoded\r\n");
-   sprintf(request_buffer+strlen(request_buffer),"Content-Length: %d\r\n", body_len); 
-   strcat(request_buffer,"\r\n"); 
-   strcat(request_buffer,body); 
+   sprintf(request_buffer+strlen(request_buffer),"Content-Length: %d\r\n", body_len);
+   strcat(request_buffer,"\r\n");
+   strcat(request_buffer,body);
    strcat(request_buffer,"\r\n");
    do_http_request("608dev.net", request_buffer, response_buffer, 1000, 6000,true);
    return;
