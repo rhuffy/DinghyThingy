@@ -32,8 +32,8 @@ struct GPS_READING_T{
 };
 
 //initialize gps
-init_gps();
+void init_gps();
 //read gps data
-read_gps();
+void read_gps();
 
 #endif // __GPS_H
