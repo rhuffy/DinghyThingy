@@ -14,14 +14,16 @@ from bokeh.plotting import figure, output_file, save, show
 # Request handling
 #-------------------------------------------------------------------------------------------------
 
-db = "__HOME__/final_project/dinghy_thingy.db" # database for server
-#db = "dinghy_thingy.db" # database for on-computer testing
+home = "__HOME__/final_project/" #path for server testing
+#home = "" # path for on-computer testing
+db = home+"dinghy_thingy.db" 
 
 #example post
-p = {'method':'POST', 'form':{'categories':'int boatnum, datetime time, float lat, float lon, float x_accel, float y_accel, float z_accel', 'data':'22, 2019-04-24T13:29:13.5, 42.357, -71.091, .01, 456.95, 59.04\n227,  2019-02-23T13:32:16.5, 42.355, -71.094, .1, 678.98, 589.09\n22, 2019-04-24T13:32:15.5, 42.356, -71.094, .13, 456.95, 59.04\n22, 2019-04-24T13:35:16.8, 42.353, -71.100, .3, 456.95, 59.04'}}
-
+p = {'form': {'categories': 'int boatnum, datetime time, float lat, float lon, float x_accel, float y_accel, float z_accel','data': '22, 2019-04-24T13:29:13.5, 42.357, -71.091, .01, .01, 59.04\n227,  2019-04-24T13:32:16.5, 42.355, -71.094, .1, .1, 589.09\n22, 2019-04-24T13:32:15.5, 42.356, -71.094, .13, .13, 59.04\n22, 2019-04-24T13:35:16.8, 42.353, -71.100, .3, .3, 59.04'},'method': 'POST'}
 #example get
 g = {'method':'GET', 'values':{'date':'2019-04-24', 'boatnum':22}}
+#example get
+g2 = {'method':'GET', 'values':{'date':'2019-04-24'}}
 
 def request_handler(request):
     
@@ -50,15 +52,15 @@ def request_handler(request):
                 return  0
             
     elif 'boatnum' not in request['values'] and 'date' not in request['values']:
-        return lookup_database()
+        return response_no_param()
     elif 'boatnum' in request['values'] and 'date' in request['values']:
         
-        try:
+        #try:
             boatnum = int(request['values']['boatnum'])
             date = datetime.strptime(request['values']['date'].strip(), "%Y-%m-%d")
-            return response(get_dateandboat_data(date, boatnum))
-        except:
-            return  "boatnum must be valid numbers and date must be valid date in format YYYY-MM-DD."
+            return single_boat_response(date, boatnum)
+        #except:
+         #   return  "boatnum must be valid numbers and date must be valid date in format YYYY-MM-DD."
         
     elif 'boatnum' in request['values']:
         
@@ -70,11 +72,11 @@ def request_handler(request):
         
     elif 'date' in request['values']:
         
-        try:
+        #try:
             date = datetime.strptime(request['values']['date'].strip(), "%Y-%m-%d")
-            return print_date_data(date)
-        except:
-            return  "date must be valid date in format YYYY-MM-DD."
+            return response(date)
+        #except:
+         #   return  "date must be valid date in format YYYY-MM-DD."
         
     else:
         return "Invalid request"
@@ -293,6 +295,24 @@ def get_dateandboat_data(date, boatnum):
     things = executed.fetchall()
     names = [description[0] for description in executed.description]
     
+    conn.commit()
+    conn.close()
+    
+    df = pd.DataFrame(data=things, columns=names)
+    return df
+
+def get_boat_data(boatnum):
+    
+    conn = sqlite3.connect(db)
+    c = conn.cursor()
+    
+    executed = c.execute('''SELECT * FROM dinghy_thingy WHERE boatnum = ? ORDER BY time ASC;''',(boatnum,))
+    things = executed.fetchall()
+    names = [description[0] for description in executed.description]
+    
+    conn.commit()
+    conn.close()
+    
     df = pd.DataFrame(data=things, columns=names)
     return df
 
@@ -331,40 +351,14 @@ def embed_map(df):
     request_string = "https://maps.googleapis.com/maps/api/staticmap?key={}&size=500x500&markers={}&path={}".format(MY_API_KEY,markers,path)
     return request_string
 
-#Average_filter for the data
-#Note that it is only one input although the value is called inputs
-
-def averaging_filter(inputs, stored_values, order):
-    count = order
-    final_result = 0
-    k = 1.0/(1+order)
-
-    if order == 0:
-        return inputs
-
-    while count >= 0:
-        if count == 0:
-            final_result = final_result + k*inputs
-        final_result = final_result + k*stored_values[count]
-        count-=1
-
-    count = order-1
-    while count >= 0:
-        if count == 0:
-            stored_values[count] = inputs
-        else:
-            stored_values[count] = stored_values[count-1]
-        count-=1
-
-    return final_result
-
-def plot_heel(df):
+def plot_heel(df,boatnum):
     df['hour'] = df['time'].apply(lambda x: int(x[11:13]) + int(x[14:16])/60)
     x = df['hour'].values
     #y_accel will give a decimal value from 0 to 1 showing how tilted the device is on a scale of 0 to 90 degrees
     y = (df['y_accel'] * 100).values
     # output to static HTML file
-    output_file("__HOME__/final_project/heel.html")
+    filename = "heel"+str(boatnum)+".html"
+    output_file(home+filename)
     
     # create a new plot
     p = figure(
@@ -378,12 +372,113 @@ def plot_heel(df):
     
     # show the results
     save(p)
-    return "heel.html"
-    #return "heel.html"
+    return filename
 
-def response(df):
+def single_boat_response(date, boatnum):
+    df = get_dateandboat_data(date, boatnum)
     request_string = embed_map(df)
-    img = plot_heel(df)
+    img = plot_heel(df, boatnum)
     #return '''<!DOCTYPE html>\n<html>\n\t<head>\n\t\t<meta charset="utf-8">\n\t\t<meta name="viewport" content="width=device-width">\n\t\t<title>Dinghy Thingy</title>\n\t</head>\n\t<body>\n\t\t<p><b>Path of the boat over time:</b></p>\n\t\t<img src={} alt="Map of boat path" >\n\t\t<p> Green is where is started, red is where it ended; </p>\n\t\t<p><b>Heel of the boat over time:</b></p>\n\t\t<img src={} alt="Plot of heel of boat" >\n\n\t</body>\n</html>'''.format(request_string, img)
     return '''<!DOCTYPE html>\n<html>\n\t<head>\n\t\t<meta charset="utf-8">\n\t\t<meta name="viewport" content="width=device-width">\n\t\t<title>Dinghy Thingy</title>\n\t</head>\n\t<body>\n\t\t<p><b>Path of the boat over time:</b></p>\n\t\t<img src={} alt="Map of boat path" >\n\t\t<p> Green is where is started, red is where it ended; </p>\n\t\t<p><b>Heel of the boat over time:</b></p>\n\t\t<iframe src={} style="border:none;" height="500" width="500"></iframe>\n\n\t</body>\n</html>'''.format(request_string, img)
+
+
+def set_up_webpage(date, boatnum):
+    df = get_dateandboat_data(date, boatnum)
+    #preapre boatnum link
+    request_string = embed_map(df)
+    img = plot_heel(df, boatnum)
     
+    f=open(home+"boat.html", "r")
+    contents = f.read()
+    #print(contents)
+    #print("______________")
+    new_contents = contents.replace("{googlemaps}",request_string)
+    new_contents = new_contents.replace("{heel}",img)
+    new_contents = new_contents.replace("{home}", home)
+    #print(new_contents)
+    boat_file = "boat"+str(boatnum)+".html"
+    f= open(home+boat_file,"w+")
+    f.write(new_contents)
+    
+    return "<a href=\""+ boat_file +"\"> Boat "+str(boatnum)+"</a>"
+
+def set_up_webpage_without_date(boatnum):
+    df = get_boat_data(boatnum)
+    #preapre boatnum link
+    request_string = embed_map(df)
+    img = plot_heel(df, boatnum)
+    
+    f=open(home+"boat.html", "r")
+    contents = f.read()
+    #print(contents)
+    #print("______________")
+    new_contents = contents.replace("{googlemaps}",request_string)
+    new_contents = new_contents.replace("{heel}",img)
+    new_contents = new_contents.replace("{home}", home)
+    #print(new_contents)
+    boat_file = "boat"+str(boatnum)+".html"
+    f= open(home+boat_file,"w+")
+    f.write(new_contents)
+    
+    return "<a href=\""+ boat_file +"\"> Boat "+str(boatnum)+"</a>"
+    
+  
+def response(date):
+    
+    conn = sqlite3.connect(db)
+    c = conn.cursor()
+    
+    beginning_of_day = date;
+    end_of_day = datetime(date.year,date.month,date.day,23,59,59,999999)
+    
+    executed = c.execute('''SELECT boatnum FROM dinghy_thingy WHERE time > ? AND time < ? ORDER BY time ASC;''',(beginning_of_day, end_of_day,))
+    things = executed.fetchall()
+    conn.commit()
+    conn.close()
+    
+    #get all links
+    links = ""
+    boatnums = set()
+    for tup in things:
+       if tup[0] not in boatnums:
+           boatnums.add(tup[0])
+           links +=  set_up_webpage(date, tup[0])+"\n    "
+    links = links[:-5]
+    #write new html code
+    f=open(home+"index.html", "r")
+    if f.mode == 'r':
+      contents =f.read()
+      new_contents = contents.replace("{link}", links)
+      new_contents = new_contents.replace("{home}", home)
+      f2=open(home+"ui.html", "w+")
+      f2.write(new_contents)
+      return new_contents
+  
+def response_no_param():
+    
+    conn = sqlite3.connect(db)
+    c = conn.cursor()
+    
+    executed = c.execute('''SELECT boatnum FROM dinghy_thingy ORDER BY time ASC;''')
+    things = executed.fetchall()
+    conn.commit()
+    conn.close()
+    
+    #get all links
+    links = ""
+    boatnums = set()
+    for tup in things:
+       if tup[0] not in boatnums:
+           boatnums.add(tup[0])
+           links +=  set_up_webpage_without_date(tup[0])+"\n    "
+    links = links[:-5]
+    #write new html code
+    f=open(home+"template_index.html", "r")
+    if f.mode == 'r':
+      contents =f.read()
+      new_contents = contents.replace("{link}", links)
+      new_contents = new_contents.replace("{home}", home)
+      f2=open(home+"index.html", "w+")
+      f2.write(new_contents)
+      return new_contents
+      
