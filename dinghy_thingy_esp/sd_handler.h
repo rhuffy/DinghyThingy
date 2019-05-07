@@ -1,0 +1,19 @@
+#ifndef __SD_HANDLER_H
+#define __SD_HANDLER_H
+#include <Arduino.h>
+
+#include <SPI.h>
+#include "FS.h"
+#include "SD.h"
+
+#define SD_CS 5
+
+#include "sensor_types.h"
+
+void sd_write(SENSOR_READING_T *data_buffer, int size);
+void writeFile(fs::FS &fs, const char * path, const char * message);
+void appendFile(fs::FS &fs, const char * path, const char * message);
+void readFile(fs::FS &fs, const char * path, char* output);
+void init_sd();
+
+#endif

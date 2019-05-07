@@ -1,24 +1,17 @@
-// void send_info(char* info);
+#include "wifi_handler.h"
 
-#include <cstdlib>
-#include <string.h>
-#include <TFT_eSPI.h>
-#include <WiFi.h>
-
-
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//Helper functions
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
+char network[] = "6s08"; //"6s08";  //SSID for 6.08 Lab
+char password[] = "iesc6s08"; //"iesc6s08"; //Password for 6.08 Lab
+char host[] = "608dev.net";
 
 char request_buffer[1000];
 
 uint8_t char_append(char* buff, char c, uint16_t buff_size) {
-        int len = strlen(buff);
-        if (len>buff_size) return false;
-        buff[len] = c;
-        buff[len+1] = '\0';
-        return true;
+  int len = strlen(buff);
+  if (len>buff_size) return false;
+  buff[len] = c;
+  buff[len+1] = '\0';
+  return true;
 }
 
 void do_http_request(char* host, char* request, char* response, uint16_t response_size, uint16_t response_timeout, uint8_t serial){
@@ -49,6 +42,28 @@ void do_http_request(char* host, char* request, char* response, uint16_t respons
     if (serial) Serial.println("connection failed :/");
     if (serial) Serial.println("wait 0.5 sec...");
     client.stop();
+  }
+}
+
+void wifi_connect(){
+  WiFi.begin(network, password); //attempt to connect to wifi
+  uint8_t count = 0; //count used for Wifi check times
+  Serial.print("Attempting to connect to ");
+  Serial.println(network);
+  while (WiFi.status() != WL_CONNECTED && count < 12) {
+    delay(500);
+    Serial.print(".");
+    count++;
+  }
+  delay(2000);
+  if (WiFi.isConnected()) { //if we connected then print our IP, Mac, and SSID we're on
+    Serial.println("CONNECTED!");
+    Serial.println(WiFi.localIP().toString() + " (" + WiFi.macAddress() + ") (" + WiFi.SSID() + ")");
+    delay(500);
+  } else { //if we failed to connect just Try again.
+    Serial.println("Failed to Connect :/  Going to restart");
+    Serial.println(WiFi.status());
+    ESP.restart(); // restart the ESP (proper way)
   }
 }
 

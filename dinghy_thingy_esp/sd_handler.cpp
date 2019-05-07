@@ -1,35 +1,26 @@
-#include "FS.h"
-#include "SD.h"
-#include "SPI.h"
+#include "sd_handler.h"
 
-#define SD_CS 5
-
-// void init_sd();
-// void my_sd_write(SENSOR_READING_T *data_buffer, int size);
-//
-// void writeFile(fs::FS &fs, const char * path, const char * message);
-// void appendFile(fs::FS &fs, const char * path, const char * message);
-// void readFile(fs::FS &fs, const char * path, char* output);
-// RTC_DATA_ATTR int readingID = 0;
-
-// char data_message[100];
-
-
+char data_message[1000];
 
 // int boatnum, datetime time, float lat, float lon, float x_accel, float y_accel, float z_accel
-void my_sd_write(SENSOR_READING_T *data_buffer, int size){
+void sd_write(SENSOR_READING_T *data_buffer, int size){
  for(int i = 0; i < size; i++){
-   sprintf(data_message, "%d,%d,%f,%f,%f,%f,%f\r\n",
-   data_buffer[i]->boat_id,
-   data_buffer[i]->time,
-   data_buffer[i]->gps.latitude,  // write data
-   data_buffer[i]->gps.longitude,
-   data_buffer[i]->imu.x_accel,
-   data_buffer[i]->imu.y_accel,
-   data_buffer[i]->imu.z_accel);
+   sprintf(data_message, "%d,%04d-%02d-%02dT%02d:%02d:%02d,%f,%f,%f,%f,%f;",
+   data_buffer[i].boat_id,
+   data_buffer[i].gps.year,
+   data_buffer[i].gps.month,
+   data_buffer[i].gps.day,
+   data_buffer[i].gps.hour,
+   data_buffer[i].gps.minute,
+   data_buffer[i].gps.second,
+   data_buffer[i].gps.latitude,  // write data
+   data_buffer[i].gps.longitude,
+   data_buffer[i].imu.x_accel,
+   data_buffer[i].imu.y_accel,
+   data_buffer[i].imu.z_accel);
    Serial.print("Save data: ");
-   Serial.println(dataMessage);
-   appendFile(SD, "/data.txt", dataMessage.c_str());
+   Serial.println(data_message);
+   appendFile(SD, "/data.txt", data_message);
  }
 }
 
@@ -107,7 +98,7 @@ void init_sd(){
   if(!file) {
     Serial.println("File doens't exist");
     Serial.println("Creating file...");
-    writeFile(SD, "/data.txt", "int boatnum,datetime time,float lat,float lon,float x_accel,float y_accel,float z_accel \r\n");
+    writeFile(SD, "/data.txt", "");
   }
   else {
     Serial.println("File already exists");
