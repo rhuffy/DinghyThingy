@@ -13,13 +13,18 @@
 #include "FS.h"
 #include "SD.h"
 
+char network[] = "6s08"; //"6s08";  //SSID for 6.08 Lab
+char password[] = "iesc6s08"; //"iesc6s08"; //Password for 6.08 Lab
+char host[] = "608dev.net";
+
+
 #define BOAT_NUMBER 1
 #define MAX_READINGS 50
 
 #define RECORD_BUTTON_PIN 16
 #define UPLOAD_BUTTON_PIN 17
 
-#define LOG_RATE 50
+#define LOG_RATE 1000
 
 #define SD_CS 5
 
@@ -41,7 +46,6 @@ struct GPS_READING_T{
     int hour; //hour (24 clock GMT)
     int minute; //minute
     int second; //second
-    int time;
 };
 
 struct IMU_READING_T{
@@ -124,6 +128,28 @@ void do_http_request(char* host, char* request, char* response, uint16_t respons
   }
 }
 
+void wifi_connect(){
+  WiFi.begin(network, password); //attempt to connect to wifi
+  uint8_t count = 0; //count used for Wifi check times
+  Serial.print("Attempting to connect to ");
+  Serial.println(network);
+  while (WiFi.status() != WL_CONNECTED && count < 12) {
+    delay(500);
+    Serial.print(".");
+    count++;
+  }
+  delay(2000);
+  if (WiFi.isConnected()) { //if we connected then print our IP, Mac, and SSID we're on
+    Serial.println("CONNECTED!");
+    Serial.println(WiFi.localIP().toString() + " (" + WiFi.macAddress() + ") (" + WiFi.SSID() + ")");
+    delay(500);
+  } else { //if we failed to connect just Try again.
+    Serial.println("Failed to Connect :/  Going to restart");
+    Serial.println(WiFi.status());
+    ESP.restart(); // restart the ESP (proper way)
+  }
+}
+
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 //Main function for the file to make Post requests to the server with the information
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -131,7 +157,7 @@ void do_http_request(char* host, char* request, char* response, uint16_t respons
 
 
 void send_info(char* info, char* response_buffer){
-  char body[1000];
+  char body[5000];
   sprintf(body,"categories=int boatnum, datetime time, float lat, float lon, float x_accel, float y_accel, float z_accel&data=%s",info);
   int body_len = strlen(body);
   sprintf(request_buffer,"POST http://608dev.net/sandbox/sc/mayigrin/final_project/parse_data.py HTTP/1.1\r\n");
@@ -149,9 +175,14 @@ void send_info(char* info, char* response_buffer){
 // int boatnum, datetime time, float lat, float lon, float x_accel, float y_accel, float z_accel
 void sd_write(SENSOR_READING_T *data_buffer, int size){
  for(int i = 0; i < size; i++){
-   sprintf(data_message, "%d,%d,%f,%f,%f,%f,%f\r\n",
+   sprintf(data_message, "%d,%04d-%02d-%02dT%02d:%02d:%02d,%f,%f,%f,%f,%f;",
    data_buffer[i].boat_id,
-   data_buffer[i].gps.time,
+   data_buffer[i].gps.year,
+   data_buffer[i].gps.month,
+   data_buffer[i].gps.day,
+   data_buffer[i].gps.hour,
+   data_buffer[i].gps.minute,
+   data_buffer[i].gps.second,
    data_buffer[i].gps.latitude,  // write data
    data_buffer[i].gps.longitude,
    data_buffer[i].imu.x_accel,
@@ -237,7 +268,7 @@ void init_sd(){
   if(!file) {
     Serial.println("File doens't exist");
     Serial.println("Creating file...");
-    writeFile(SD, "/data.txt", "int boatnum,datetime time,float lat,float lon,float x_accel,float y_accel,float z_accel \r\n");
+    writeFile(SD, "/data.txt", "");
   }
   else {
     Serial.println("File already exists");
@@ -433,6 +464,7 @@ void update_state_root(){
 
 void enter_state_ready(){
     Serial.println("[READY]");
+    time_in_ready = millis();
 }
 
 void update_state_ready(){
@@ -444,11 +476,11 @@ void update_state_ready(){
     set_state(STATE_UPLOAD);
   }
 
-  else if(data_buffer_index >= MAX_READINGS){
+  else if(data_buffer_index >= MAX_READINGS-1){
     set_state(STATE_WRITEFLASH);
   }
 
-  else if(time_in_ready > LOG_RATE){
+  else if(millis() - time_in_ready > LOG_RATE){
     set_state(STATE_SENSE);
   }
 }
@@ -468,6 +500,8 @@ void update_state_sense(){
   };
 
   // add data to buffer
+  Serial.print("Save data at: ");
+  Serial.println(data_buffer_index);
   data_buffer[data_buffer_index++] = current_reading;
 
   set_state(STATE_READY);
@@ -495,11 +529,12 @@ void enter_state_upload(){
 void update_state_upload(){
 
   // char dat[] = "22, 2019-04-24T13:29:13.5, 42.357, -71.091, .01, .01, 59.04\n227,  2019-02-23T13:32:16.5, 42.355, -71.094, .1, .1, 589.09\n22, 2019-04-24T13:32:15.5, 42.356, -71.094, .13, .13, 59.04\n22, 2019-04-24T13:35:16.8, 42.353, -71.100, .3, .3, 59.04";
-  char dat[100];
+  wifi_connect();
+  unsigned char dat[5000];
   readFile(SD, "/data.txt", dat);
   Serial.println(dat);
   //readFile()
-  char response[1000];
+  char response[5000];
   send_info(dat,response);
   if(!strcmp(response,"1")){
     set_state(STATE_ROOT);

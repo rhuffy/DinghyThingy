@@ -1,10 +1,15 @@
-void setup(){
-  init_sd();
-  init_state();
-  init_gps();
-  init_imu();
-}
+#include <Wire.h>
+#include <string.h>
 
-void loop(){
-  advance_state();
-}
+#include <SPI.h>
+#include <math.h>
+
+#include <mpu9255_esp32.h>
+
+#include <cstdlib>
+#include <TFT_eSPI.h>
+#include <WiFi.h>
+// #include <WiFiClientSecure.h>
+
+#include "FS.h"
+#include "SD.h"
