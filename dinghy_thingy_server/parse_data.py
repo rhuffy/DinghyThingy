@@ -116,9 +116,10 @@ def tuplefy(data): #assumes data is dictionary where category : data (category i
 def parse_csv_data_line(line, categories):
     str_data_list = line.split(",")
     data = {}
-    if len(str_data_list) != len(categories):
-        print("Error: data not same length as categories")
-    else:
+#    if len(str_data_list) != len(categories):
+#        print("Error: data not same length as categories")
+#    else:
+    if len(str_data_list) == len(categories):
         for i in range(len(str_data_list)):
             str_data = str_data_list[i]
             if str_data != None:
