@@ -157,7 +157,7 @@ void wifi_connect(){
 
 
 void send_info(char* info, char* response_buffer){
-  char body[1000];
+  char body[5000];
   sprintf(body,"categories=int boatnum, datetime time, float lat, float lon, float x_accel, float y_accel, float z_accel&data=%s",info);
   int body_len = strlen(body);
   sprintf(request_buffer,"POST http://608dev.net/sandbox/sc/mayigrin/final_project/parse_data.py HTTP/1.1\r\n");
@@ -530,11 +530,11 @@ void update_state_upload(){
 
   // char dat[] = "22, 2019-04-24T13:29:13.5, 42.357, -71.091, .01, .01, 59.04\n227,  2019-02-23T13:32:16.5, 42.355, -71.094, .1, .1, 589.09\n22, 2019-04-24T13:32:15.5, 42.356, -71.094, .13, .13, 59.04\n22, 2019-04-24T13:35:16.8, 42.353, -71.100, .3, .3, 59.04";
   wifi_connect();
-  char dat[5000];
+  unsigned char dat[5000];
   readFile(SD, "/data.txt", dat);
   Serial.println(dat);
   //readFile()
-  char response[1000];
+  char response[5000];
   send_info(dat,response);
   if(!strcmp(response,"1")){
     set_state(STATE_ROOT);

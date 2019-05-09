@@ -5,7 +5,7 @@ char data_message[1000];
 // int boatnum, datetime time, float lat, float lon, float x_accel, float y_accel, float z_accel
 void sd_write(SENSOR_READING_T *data_buffer, int size){
  for(int i = 0; i < size; i++){
-   sprintf(data_message, "%d,%04d-%02d-%02dT%02d:%02d:%02d,%f,%f,%f,%f,%f;",
+   sprintf(data_message, "%d,20%02d-%02d-%02dT%02d:%02d:%02d,%f,%f,%f,%f,%f\n",
    data_buffer[i].boat_id,
    data_buffer[i].gps.year,
    data_buffer[i].gps.month,
@@ -62,17 +62,35 @@ void appendFile(fs::FS &fs, const char * path, const char * message) {
 void readFile(fs::FS &fs, const char * path, char* output){
     Serial.printf("Reading file: %s\n", path);
 
+    String buffer;
+
+    //unsigned char* temp = (unsigned char*) output;
+
     File file = fs.open(path);
     if(!file){
         Serial.println("Failed to open file for reading");
         return;
     }
-
+    strcpy(output, "");
     Serial.print("Read from file: ");
     while(file.available()){
-        Serial.write(file.read());
+        //file.read(temp, 4500);
+        buffer = file.readStringUntil('\n');
+        strcat(output, buffer.c_str());
+        // if(file.available()){
+        strcat(output, "\n");
+        // }
+
     }
     file.close();
+
+    // Serial.println(buffer);
+
+    // strcpy(output, buffer.c_str());
+    // Serial.println(output);
+    output[strlen(output)-1] = 0; // kills trailing newline
+    output[strlen(output)-1] = 0;
+    Serial.println("after strcpy");
 }
 
 void init_sd(){

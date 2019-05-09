@@ -6,6 +6,8 @@
 #include "FS.h"
 #include "SD.h"
 
+#include <string.h>
+
 #define SD_CS 5
 
 #include "sensor_types.h"

@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <TFT_eSPI.h>
 #include <WiFi.h>
+// #include <WiFiClientSecure.h>
 
 #include "FS.h"
 #include "SD.h"

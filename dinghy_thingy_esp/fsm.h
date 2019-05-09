@@ -7,7 +7,7 @@
 #include "sd_handler.h"
 #include "wifi_handler.h"
 
-#define MAX_READINGS 50
+#define MAX_READINGS 10
 #define BOAT_NUMBER 1
 
 #define RECORD_BUTTON_PIN 16
