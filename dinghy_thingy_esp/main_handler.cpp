@@ -7,6 +7,7 @@
 #include "wifi_handler.h"
 
 void setup(){
+  Serial.begin(115200);
   init_sd();
   init_state();
   init_gps();

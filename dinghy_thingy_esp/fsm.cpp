@@ -1,15 +1,105 @@
 #include "fsm.h"
 
+class Button{
+  public:
+  uint32_t t_of_state_2;
+  uint32_t t_of_button_change;
+  uint32_t debounce_time;
+  uint32_t long_press_time;
+  uint8_t pin;
+  uint8_t flag;
+  bool button_pressed;
+  uint8_t state; // This is public for the sake of convenience
+  Button(int p) {
+  flag = 0;
+    state = 0;
+    pin = p;
+    t_of_state_2 = millis(); //init
+    t_of_button_change = millis(); //init
+    debounce_time = 10;
+    long_press_time = 1000;
+    button_pressed = 0;
+  }
+  void read() {
+    uint8_t button_state = digitalRead(pin);
+    button_pressed = !button_state;
+  }
+  int update() {
+    read();
+    flag = 0;
+    switch(state){
+      case 0:
+        if (button_pressed) {
+          state = 1;
+          t_of_button_change = millis();
+        }
+        break;
+      case 1:
+        if (button_pressed && millis() - t_of_button_change >= debounce_time){
+          state = 2;
+          t_of_state_2 = millis();
+        }
+        if (!button_pressed){
+          state = 0;
+          t_of_button_change = millis();
+        }
+        break;
+      case 2:
+        if (button_pressed && millis() - t_of_state_2 >= long_press_time){
+          state = 3;
+        }
+        if (!button_pressed){
+          state = 4;
+          t_of_button_change = millis();
+        }
+        break;
+      case 3:
+        if (!button_pressed){
+          state = 4;
+          t_of_button_change = millis();
+        }
+        break;
+      case 4:
+        if (!button_pressed && millis() - t_of_button_change >= debounce_time){
+          state = 0;
+          if(millis() - t_of_state_2 < long_press_time){
+            flag = 1;
+          }else{
+            flag = 2;
+          }
+
+        }
+        if (button_pressed && millis() - t_of_state_2 < long_press_time){
+          state = 2;
+          t_of_button_change = millis();
+        }
+        if (button_pressed && millis() - t_of_state_2 >= long_press_time){
+          state = 3;
+          t_of_button_change = millis();
+        }
+        break;
+    }
+    return flag;
+  }
+};
+
 STATE_T current_state;
 
 SENSOR_READING_T data_buffer[MAX_READINGS+1] = {0};
 int data_buffer_index, time_in_ready;
+
+Button record_button(RECORD_BUTTON_PIN); //button object!
+Button upload_button(UPLOAD_BUTTON_PIN);
+
+int record_bv, upload_bv;
 
 /**
  * Calls the correct update function based on current state.
  * Should be called once every cycle.
  */
 void advance_state(){
+  record_bv = record_button.update();
+  upload_bv = upload_button.update();
   switch(current_state){
     case STATE_ROOT:
       update_state_root();
@@ -63,6 +153,8 @@ void set_state(STATE_T new_state){
 void init_state(){
   pinMode(RECORD_BUTTON_PIN, INPUT_PULLUP);
   pinMode(UPLOAD_BUTTON_PIN, INPUT_PULLUP);
+  record_bv = 0;
+  upload_bv = 0;
   data_buffer_index = 0;
   set_state(STATE_ROOT);
 }
@@ -83,9 +175,13 @@ void enter_state_root(){
 void update_state_root(){
 
 
-  if(!digitalRead(RECORD_BUTTON_PIN)){
+  if(record_bv == 1){
     set_state(STATE_SENSE);
   }
+  else if(upload_bv == 1){
+    set_state(STATE_UPLOAD);
+  }
+
 }
 
 
@@ -96,11 +192,8 @@ void enter_state_ready(){
 
 void update_state_ready(){
 
-  if(!digitalRead(RECORD_BUTTON_PIN)){
+  if(record_bv == 1){
     set_state(STATE_ROOT);
-  }
-  else if(!digitalRead(UPLOAD_BUTTON_PIN)){
-    set_state(STATE_UPLOAD);
   }
 
   else if(data_buffer_index >= MAX_READINGS-1){
