@@ -1,7 +1,7 @@
 #include "wifi_handler.h"
 
-char network[] = "6s08"; //"6s08";  //SSID for 6.08 Lab
-char password[] = "iesc6s08"; //"iesc6s08"; //Password for 6.08 Lab
+char network[] = "MIT"; //"6s08";  //SSID for 6.08 Lab
+char password[] = ""; //"iesc6s08"; //Password for 6.08 Lab
 char host[] = "608dev.net";
 
 char request_buffer[1000];
@@ -74,7 +74,7 @@ void wifi_connect(){
 
 
 void send_info(char* info, char* response_buffer){
-  char body[1000];
+  char body[5000];
   sprintf(body,"categories=int boatnum, datetime time, float lat, float lon, float x_accel, float y_accel, float z_accel&data=%s",info);
   int body_len = strlen(body);
   sprintf(request_buffer,"POST http://608dev.net/sandbox/sc/mayigrin/final_project/parse_data.py HTTP/1.1\r\n");
