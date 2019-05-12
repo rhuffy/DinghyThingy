@@ -10,6 +10,7 @@ struct GPS_READING_T{
   int hour; //hour (24 clock GMT)
   int minute; //minute
   int second; //second
+  bool valid;
 };
 
 struct IMU_READING_T{

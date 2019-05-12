@@ -58,12 +58,15 @@ void extract_gps_data(char* data_array,GPS_READING_T* data){
     data->year = (data_array[++i]-48)*10+data_array[++i]-48;
   }
   else valid = 0;
+
+  data->valid = valid;
 }
 
 void extractGNRMC_gps(GPS_READING_T* data){
   while (gps.available()) {     // If anything comes in Serial1 (pins 0 & 1)
     gps.readBytesUntil('\n', buffer, BUFFER_LENGTH); // read it and send it out Serial (USB)
     char* info = strstr(buffer,"GNRMC");
+    Serial.println(info);
     if (info!=NULL){
       //Serial.println(buffer); for debugging;
       extract_gps_data(buffer,data);

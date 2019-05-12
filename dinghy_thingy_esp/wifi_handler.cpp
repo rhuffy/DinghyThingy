@@ -1,7 +1,7 @@
 #include "wifi_handler.h"
 
-char network[] = "6s08"; //"6s08";  //SSID for 6.08 Lab
-char password[] = "iesc6s08"; //"iesc6s08"; //Password for 6.08 Lab
+char network[] = "MIT"; //"6s08";  //SSID for 6.08 Lab
+char password[] = ""; //"iesc6s08"; //Password for 6.08 Lab
 char host[] = "608dev.net";
 
 char request_buffer[3000];

@@ -193,10 +193,11 @@ void enter_state_ready(){
 void update_state_ready(){
 
   if(record_bv == 1){
+    sd_write(data_buffer, MAX_READINGS);
     set_state(STATE_ROOT);
   }
 
-  else if(data_buffer_index >= MAX_READINGS-1){
+  else if(data_buffer_index >= MAX_READINGS){
     set_state(STATE_WRITEFLASH);
   }
 
@@ -220,9 +221,13 @@ void update_state_sense(){
   };
 
   // add data to buffer
-  Serial.print("Save data at: ");
-  Serial.println(data_buffer_index);
-  data_buffer[data_buffer_index++] = current_reading;
+  if(current_reading.gps.valid){
+    Serial.print("Save data at: ");
+    Serial.println(data_buffer_index);
+    data_buffer[data_buffer_index++] = current_reading;
+  } else {
+    Serial.println("Invalid GPS data");
+  }
 
   set_state(STATE_READY);
 }
@@ -259,12 +264,15 @@ void update_state_upload(){
   //Serial.println("dat:");
   //Serial.println(dat);
   //readFile()
-  char response[1000];
+  char response[100];
   send_info(dat,response);
   if(!strcmp(response,"1")){
+    Serial.println("Upload successful");
+    //clear_data_file();
     set_state(STATE_ROOT);
   }
   else{
     Serial.println("Error uploading");
   }
+  Serial.println("z");
 }

@@ -10,9 +10,11 @@
 
 #define SD_CS 5
 
+#include "fsm.h"
 #include "sensor_types.h"
 
 void sd_write(SENSOR_READING_T *data_buffer, int size);
+void clear_data_file();
 void writeFile(fs::FS &fs, const char * path, const char * message);
 void appendFile(fs::FS &fs, const char * path, const char * message);
 void readFile(fs::FS &fs, const char * path, char* output);

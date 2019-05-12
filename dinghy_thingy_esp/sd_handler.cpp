@@ -1,27 +1,30 @@
 #include "sd_handler.h"
 
-char data_message[1000];
-
+char data_message[MAX_READINGS * 100];
 // int boatnum, datetime time, float lat, float lon, float x_accel, float y_accel, float z_accel
 void sd_write(SENSOR_READING_T *data_buffer, int size){
- for(int i = 0; i < size; i++){
-   sprintf(data_message, "%d,20%02d-%02d-%02dT%02d:%02d:%02d,%f,%f,%f,%f,%f\n",
-   data_buffer[i].boat_id,
-   data_buffer[i].gps.year,
-   data_buffer[i].gps.month,
-   data_buffer[i].gps.day,
-   data_buffer[i].gps.hour,
-   data_buffer[i].gps.minute,
-   data_buffer[i].gps.second,
-   data_buffer[i].gps.latitude,  // write data
-   data_buffer[i].gps.longitude,
-   data_buffer[i].imu.x_accel,
-   data_buffer[i].imu.y_accel,
-   data_buffer[i].imu.z_accel);
+  for(int i = 0; i < size; i++){
+    sprintf(data_message, "%d,20%02d-%02d-%02dT%02d:%02d:%02d,%f,%f,%f,%f,%f\n",
+      data_buffer[i].boat_id,
+      data_buffer[i].gps.year,
+      data_buffer[i].gps.month,
+      data_buffer[i].gps.day,
+      data_buffer[i].gps.hour,
+      data_buffer[i].gps.minute,
+      data_buffer[i].gps.second,
+      data_buffer[i].gps.latitude,  // write data
+      data_buffer[i].gps.longitude,
+      data_buffer[i].imu.x_accel,
+      data_buffer[i].imu.y_accel,
+      data_buffer[i].imu.z_accel);
    Serial.print("Save data: ");
    Serial.println(data_message);
    appendFile(SD, "/data.txt", data_message);
  }
+}
+
+void clear_data_file() {
+  //writeFile(SD, "/data.txt", "");
 }
 
 // Write to the SD card (DON'T MODIFY THIS FUNCTION)
@@ -88,8 +91,8 @@ void readFile(fs::FS &fs, const char * path, char* output){
 
     // strcpy(output, buffer.c_str());
     // Serial.println(output);
-    output[strlen(output)-1] = 0; // kills trailing newline
-    output[strlen(output)-1] = 0;
+    //output[strlen(output)-1] = 0; // kills trailing newline
+    //output[strlen(output)-1] = 0;
     Serial.println("after strcpy");
 }
 
