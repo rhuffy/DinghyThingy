@@ -66,7 +66,6 @@ void extractGNRMC_gps(GPS_READING_T* data){
   while (gps.available()) {     // If anything comes in Serial1 (pins 0 & 1)
     gps.readBytesUntil('\n', buffer, BUFFER_LENGTH); // read it and send it out Serial (USB)
     char* info = strstr(buffer,"GNRMC");
-    Serial.println(info);
     if (info!=NULL){
       //Serial.println(buffer); for debugging;
       extract_gps_data(buffer,data);

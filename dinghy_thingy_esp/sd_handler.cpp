@@ -27,6 +27,39 @@ void clear_data_file() {
   //writeFile(SD, "/data.txt", "");
 }
 
+bool read_and_upload(fs::FS &fs, const char * path) {
+  Serial.printf("Reading file: %s\n", path);
+
+  char output[1000];
+  char response[100];
+
+  String buffer;
+
+  File file = fs.open(path);
+  if(!file){
+    Serial.println("Failed to open file for reading");
+    return 0;
+  }
+  Serial.println("Read from file: ");
+  while(file.available()){
+    strcpy(output, "");
+    for(int i = 0; i < 10; i++){
+      if(file.available()){
+        buffer = file.readStringUntil('\n');
+        strcat(output, buffer.c_str());
+        strcat(output, "\n");
+      }
+    }
+    send_info(output, response);
+    if(strcmp(response, "1")){
+      Serial.println("Error uploading");
+      return 0;
+    }
+  }
+  file.close();
+  return 1;
+}
+
 // Write to the SD card (DON'T MODIFY THIS FUNCTION)
 void writeFile(fs::FS &fs, const char * path, const char * message) {
   Serial.printf("Writing file: %s\n", path);
@@ -93,7 +126,7 @@ void readFile(fs::FS &fs, const char * path, char* output){
     // Serial.println(output);
     //output[strlen(output)-1] = 0; // kills trailing newline
     //output[strlen(output)-1] = 0;
-    Serial.println("after strcpy");
+    // Serial.println("after strcpy");
 }
 
 void init_sd(){

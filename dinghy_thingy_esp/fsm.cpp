@@ -254,25 +254,14 @@ void enter_state_upload(){
 void update_state_upload(){
 
   // char dat[] = "22, 2019-04-24T13:29:13.5, 42.357, -71.091, .01, .01, 59.04\n227,  2019-02-23T13:32:16.5, 42.355, -71.094, .1, .1, 589.09\n22, 2019-04-24T13:32:15.5, 42.356, -71.094, .13, .13, 59.04\n22, 2019-04-24T13:35:16.8, 42.353, -71.100, .3, .3, 59.04";
-  Serial.println("A");
   wifi_connect();
-  Serial.println("B");
-  char dat[1000]; //= "24,2019-05-09T11:33:24.5,42.361073,-71.092361,-0.198120,0.007080,1.028809";
-  Serial.println("C");
-  readFile(SD, "/data.txt", dat);
-  Serial.println("D");
-  //Serial.println("dat:");
-  //Serial.println(dat);
-  //readFile()
-  char response[100];
-  send_info(dat,response);
-  if(!strcmp(response,"1")){
+  if(read_and_upload(SD, "/data.txt")){
     Serial.println("Upload successful");
     //clear_data_file();
     set_state(STATE_ROOT);
   }
   else{
-    Serial.println("Error uploading");
+    Serial.println("Error in read and upload");
   }
   Serial.println("z");
 }
