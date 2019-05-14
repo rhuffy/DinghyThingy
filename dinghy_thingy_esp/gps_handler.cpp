@@ -58,6 +58,8 @@ void extract_gps_data(char* data_array,GPS_READING_T* data){
     data->year = (data_array[++i]-48)*10+data_array[++i]-48;
   }
   else valid = 0;
+
+  data->valid = valid;
 }
 
 void extractGNRMC_gps(GPS_READING_T* data){
