@@ -125,7 +125,10 @@ def parse_csv_data_line(line, categories):
             if str_data != None:
                 info = categories[i]
                 if info["datatype"] == datetime:
-                    data[info["category"]] = datetime.strptime(str_data.strip(), "%Y-%m-%dT%H:%M:%S.%f")
+                    if "." in str_data:
+                        data[info["category"]] = datetime.strptime(str_data.strip(), "%Y-%m-%dT%H:%M:%S.%f")
+                    else:
+                        data[info["category"]] = datetime.strptime(str_data.strip(), "%Y-%m-%dT%H:%M:%S")
                 else:
                     data[info["category"]] = info["datatype"](str_data)
         return tuplefy(data)
