@@ -10,6 +10,11 @@ from datetime import datetime
 import pandas as pd
 from bokeh.plotting import figure, output_file, save, show
 import requests
+import math
+from bokeh.layouts import row, column
+from bokeh.models import CustomJS, Slider
+from bokeh.plotting import ColumnDataSource
+from bokeh.tile_providers import get_provider, Vendors
 
 #_________________________________________________________________________________________________
 # Request handling
@@ -25,7 +30,8 @@ p = {'form': {'categories': 'int boatnum, datetime time, float lat, float lon, f
 g = {'method':'GET', 'values':{'date':'2019-04-24', 'boatnum':22}}
 #example get
 g2 = {'method':'GET', 'values':{'date':'2019-04-24'}}
-
+#example get
+g3={'method': 'GET', 'values': {}}
 def request_handler(request):
     
     #returns 1 if successful, 0 if not
@@ -196,17 +202,8 @@ def lookup_database():
     things = executed.fetchall()
     names = [description[0] for description in executed.description]
     
-    printout = ""
-    for cat in names:
-        printout += str(cat) + "\t\t\t"
-    printout+="\n"
-    for row in things:
-        for info in row:
-            printout += str(info) + "\t\t\t"
-        printout += "\n"
-    conn.commit()
-    conn.close()
-    return printout
+    df = pd.DataFrame(data=things, columns=names)
+    return str(df)
 
 def print_boat_data(boatnum):
     conn = sqlite3.connect(db)
@@ -356,8 +353,93 @@ def embed_map(df):
     request_string = "https://maps.googleapis.com/maps/api/staticmap?key={}&size=500x500&markers={}&path={}".format(MY_API_KEY,markers,path)
     return request_string
 
+RADIUS = 6378137.0 # in meters on the equator
+
+def lat2y(a):
+  return math.log(math.tan(math.pi / 4 + math.radians(a) / 2)) * RADIUS
+
+def lon2x(a):
+  return math.radians(a) * RADIUS
+
+#animate the path of the boat using bokeh
+def gen_animated_plot(df, boatnum):
+    """
+    Creates an interactive bokeh plot.
+    :param df  dataframe of data
+    :param boatnum  boatnumber associated with this plot
+    """
+    
+    lat = df['lat'].values
+    lon = df['lon'].values
+    
+    data = {
+        'x': [lon2x(i) for i in lon],
+        'y': [lat2y(i) for i in lat]
+    }
+
+    empty_data = {
+        'x': [],
+        'y': []
+    }
+
+    source_visible = ColumnDataSource(data=empty_data)
+    source_available = ColumnDataSource(data=data)
+
+    # plot = figure(plot_width=400, plot_height=400)
+    plot = figure(x_range = (min(data['x']), max(data['x'])),
+                  y_range=(min(data['y']), max(data['y'])),
+                  x_axis_type="linear", y_axis_type="linear",
+                  plot_width=400, plot_height=400)
+    plot.add_tile(get_provider(Vendors.CARTODBPOSITRON))
+
+    # plot = figure(y_range=(-10, 10), plot_width=400, plot_height=400)
+
+    plot.line('x', 'y', source=source_visible, line_width=3, line_alpha=0.6)
+    plot.xaxis.major_tick_line_color = None  # turn off x-axis major ticks
+    plot.xaxis.minor_tick_line_color = None  # turn off x-axis minor ticks
+
+    plot.yaxis.major_tick_line_color = None  # turn off y-axis major ticks
+    plot.yaxis.minor_tick_line_color = None
+    plot.xaxis.major_label_text_font_size = '0pt'  # turn off x-axis tick labels
+    plot.yaxis.major_label_text_font_size = '0pt'
+
+    callback = CustomJS(args=dict(source_visible=source_visible,
+                                  source_available=source_available), code="""
+        var visible_data = source_visible.data;
+        var available_data = source_available.data;
+        var time = time.value;
+
+        var x_avail = available_data['x']
+        var y_avail = available_data['y']
+
+        visible_data['x'] = []
+        visible_data['y'] = []
+
+        for (var i = 0; i < time; i++) {
+            visible_data['x'].push(x_avail[i]);
+            visible_data['y'].push(y_avail[i]);
+        }
+        source_visible.change.emit();
+    """)
+
+    time_slider = Slider(start=1, end=len(data['x']), value=1, step=1,
+                        title=None, tooltips=False, callback=callback)
+    callback.args["time"] = time_slider
+
+    layout = row(
+        plot,
+        column(time_slider),
+    )
+
+    output_file(home+"animation_"+str(boatnum)+".html", title="Boat Viewer")
+
+    save(layout)
+    
+    return "animation_"+str(boatnum)+".html"
+
+#plot the heel of the boat using bokeh
 def plot_heel(df,boatnum):
-    df['hour'] = df['time'].apply(lambda x: int(x[11:13]) + int(x[14:16])/60)
+    df['hour'] = df['time'].apply(lambda x: int(x[11:13]) + int(x[14:16])/60 + int(x[17:19])/3600)
     x = df['hour'].values
     #y_accel will give a decimal value from 0 to 1 showing how tilted the device is on a scale of 0 to 90 degrees
     y = (df['y_accel'] * 100).values
@@ -368,7 +450,7 @@ def plot_heel(df,boatnum):
     # create a new plot
     p = figure(
        y_range=[-100, 100], title="heel of boat over time",
-       x_axis_label='time', y_axis_label='percent tilt', width=480, height=480
+       x_axis_label='24hr time', y_axis_label='percent tilt', width=480, height=480
     )
 
     # add some renderers
@@ -383,8 +465,9 @@ def single_boat_response(date, boatnum):
     df = get_dateandboat_data(date, boatnum)
     request_string = embed_map(df)
     img = plot_heel(df, boatnum)
+    animation = gen_animated_plot(df, boatnum)
     #return '''<!DOCTYPE html>\n<html>\n\t<head>\n\t\t<meta charset="utf-8">\n\t\t<meta name="viewport" content="width=device-width">\n\t\t<title>Dinghy Thingy</title>\n\t</head>\n\t<body>\n\t\t<p><b>Path of the boat over time:</b></p>\n\t\t<img src={} alt="Map of boat path" >\n\t\t<p> Green is where is started, red is where it ended; </p>\n\t\t<p><b>Heel of the boat over time:</b></p>\n\t\t<img src={} alt="Plot of heel of boat" >\n\n\t</body>\n</html>'''.format(request_string, img)
-    return '''<!DOCTYPE html>\n<html>\n\t<head>\n\t\t<meta charset="utf-8">\n\t\t<meta name="viewport" content="width=device-width">\n\t\t<title>Dinghy Thingy</title>\n\t</head>\n\t<body>\n\t\t<p><b>Path of the boat over time:</b></p>\n\t\t<img src={} alt="Map of boat path" >\n\t\t<p> Green is where is started, red is where it ended; </p>\n\t\t<p><b>Heel of the boat over time:</b></p>\n\t\t<iframe src={} style="border:none;" height="500" width="500"></iframe>\n\n\t</body>\n</html>'''.format(request_string, img)
+    return '''<!DOCTYPE html>\n<html>\n\t<head>\n\t\t<meta charset="utf-8">\n\t\t<meta name="viewport" content="width=device-width">\n\t\t<title>Dinghy Thingy</title>\n\t</head>\n\t<body>\n\t\t<p><b>Path of the boat over time:</b></p>\n\t\t<img src={} alt="Map of boat path" >\n\t\t<p> Green is where is started, red is where it ended; </p>\n\t\t<br>\n\t\t<p> Animation of the path of the boat (move the slider to see the animation): </p>\n\t\t<iframe src={} height="500" width="800"></iframe>\n\t\t<p><b>Heel of the boat over time:</b></p>\n\t\t<iframe src={} style="border:none;" height="500" width="500"></iframe>\n\n\t</body>\n</html>'''.format(request_string, animation, img)
 
 #same as set_up_webpage_without_date except does it from specified date only
 def set_up_webpage(date, boatnum):
@@ -392,6 +475,7 @@ def set_up_webpage(date, boatnum):
     #preapre boatnum link
     request_string = embed_map(df)
     img = plot_heel(df, boatnum)
+    animation = gen_animated_plot(df, boatnum)
     
     f=open(home+"boat.html", "r")
     contents = f.read()
@@ -399,6 +483,7 @@ def set_up_webpage(date, boatnum):
     #print("______________")
     new_contents = contents.replace("{googlemaps}",request_string)
     new_contents = new_contents.replace("{heel}",img)
+    new_contents = new_contents.replace("{animation}", animation)
     new_contents = new_contents.replace("{home}", home)
     #print(new_contents)
     boat_file = "boat"+str(boatnum)+".html"
@@ -416,11 +501,13 @@ def set_up_webpage_without_date(boatnum):
     #preapre boatnum link
     request_string = embed_map(df)
     img = plot_heel(df, boatnum)
+    animation = gen_animated_plot(df, boatnum)
     
     f=open(home+"boat.html", "r")
     contents = f.read()
     new_contents = contents.replace("{googlemaps}",request_string)
     new_contents = new_contents.replace("{heel}",img)
+    new_contents = new_contents.replace("{animation}", animation)
     new_contents = new_contents.replace("{home}", home)
     #print(new_contents)
     boat_file = "boat"+str(boatnum)+".html"
@@ -428,6 +515,23 @@ def set_up_webpage_without_date(boatnum):
     f.write(new_contents)
     
     return "<a href=\""+ boat_file +"\"> Boat "+str(boatnum)+"</a>"
+
+def get_weather():
+    WEATHER_API_KEY = "3404c75b6075824fcec1f084abdfe535"
+
+    r = requests.get("""http://api.openweathermap.org/data/2.5/weather?zip=02139&units=imperial&APPID=%s"""%WEATHER_API_KEY)
+    response = r.json()
+    temp = 'Temperature is '+str(response['main']['temp']) + ' degrees fahrenheit'
+    wind = 'Speed of wind is ' + str(response['wind']['speed'])+' miles/hour'
+    
+    
+    
+    if response['weather'][0]['main'] == 'Clouds':
+        gif = '<iframe src="https://giphy.com/embed/pjw5mc8Ze2mH5m5yZ6" width="320" height="240" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/gif-this-pjw5mc8Ze2mH5m5yZ6"></a></p>'
+    else:
+        gif = '<iframe src="https://giphy.com/embed/lI8YNZc734UH6" width="320" height="320" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/sunny-lI8YNZc734UH6"></a></p>'
+        
+    return temp, wind, gif
     
 #does same as response_no_param except only for data on specified date
 def response(date):
@@ -443,17 +547,7 @@ def response(date):
     conn.commit()
     conn.close()
     
-    WEATHER_API_KEY = "3404c75b6075824fcec1f084abdfe535"
-
-    r = requests.get("""http://api.openweathermap.org/data/2.5/weather?zip=02139&units=imperial&APPID=%s"""%WEATHER_API_KEY)
-    response = r.json()
-    temp = 'Temperature is '+str(response['main']['temp']) + ' degrees fahrenheit'
-    wind = 'Speed of wind is ' + str(response['wind']['speed'])+' miles/hour'
-    
-    if response['weather'][0]['main'] == 'Clouds':
-        gif = '<iframe src="https://giphy.com/embed/pjw5mc8Ze2mH5m5yZ6" width="320" height="240" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/gif-this-pjw5mc8Ze2mH5m5yZ6"></a></p>'
-    else:
-        gif = '<iframe src="https://giphy.com/embed/lI8YNZc734UH6" width="320" height="320" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/sunny-lI8YNZc734UH6"></a></p>'
+    temp, wind, gif = get_weather()
     
     #get all links
     links = ""
@@ -490,17 +584,7 @@ def response_no_param():
     conn.commit()
     conn.close()
     
-    WEATHER_API_KEY = "3404c75b6075824fcec1f084abdfe535"
-
-    r = requests.get("""http://api.openweathermap.org/data/2.5/weather?zip=02139&units=imperial&APPID=%s"""%WEATHER_API_KEY)
-    response = r.json()
-    temp = 'Temperature is '+str(response['main']['temp']) + ' degrees fahrenheit'
-    wind = 'Speed of wind is ' + str(response['wind']['speed'])+' miles/hour'
-    
-    if response['weather'][0]['main'] == 'Clouds':
-        gif = '<iframe src="https://giphy.com/embed/pjw5mc8Ze2mH5m5yZ6" width="320" height="240" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/gif-this-pjw5mc8Ze2mH5m5yZ6"></a></p>'
-    else:
-        gif = '<iframe src="https://giphy.com/embed/lI8YNZc734UH6" width="320" height="320" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/sunny-lI8YNZc734UH6"></a></p>'
+    temp, wind, gif = get_weather()
     
     
     #get all links
