@@ -4,7 +4,7 @@ char data_message[MAX_READINGS * 100];
 // int boatnum, datetime time, float lat, float lon, float x_accel, float y_accel, float z_accel
 void sd_write(SENSOR_READING_T *data_buffer, int size){
   for(int i = 0; i < size; i++){
-    sprintf(data_message, "%d,20%02d-%02d-%02dT%02d:%02d:%02d,%f,%f,%f,%f,%f\n",
+    sprintf(data_message, "%d,%d-%02d-%02dT%02d:%02d:%02d,%f,%f,%f,%f,%f\n",
       data_buffer[i].boat_id,
       data_buffer[i].gps.year,
       data_buffer[i].gps.month,
@@ -30,7 +30,7 @@ void clear_data_file() {
 bool read_and_upload(fs::FS &fs, const char * path) {
   Serial.printf("Reading file: %s\n", path);
 
-  char output[1000];
+  char output[2000];
   char response[100];
 
   String buffer;
@@ -43,7 +43,7 @@ bool read_and_upload(fs::FS &fs, const char * path) {
   Serial.println("Read from file: ");
   while(file.available()){
     strcpy(output, "");
-    for(int i = 0; i < 10; i++){
+    for(int i = 0; i < 20; i++){
       if(file.available()){
         buffer = file.readStringUntil('\n');
         strcat(output, buffer.c_str());
