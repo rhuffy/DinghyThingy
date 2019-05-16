@@ -33,7 +33,7 @@ def request_handler(request):
         if 'categories' not in request['form'] or 'data' not in request['form']:
             return 0
         else:
-            try:
+            #try:
                 #get categories from post
                 str_categories = request['form']['categories']
                 categories = parse_csv_categories(str_categories)
@@ -48,8 +48,8 @@ def request_handler(request):
                         insert_into_database(data_tuple)
                 
                 return 1 #data was added to database succesfully
-            except:
-                return  0 #there was an error
+            #except:
+             #   return  0 #there was an error
             
     elif 'boatnum' not in request['values'] and 'date' not in request['values']:
         return response_no_param()
@@ -451,7 +451,7 @@ def response(date):
            links +=  set_up_webpage(date, tup[0])+"\n    "
     links = links[:-5]
     #write new html code
-    f=open(home+"index.html", "r")
+    f=open(home+"template_index.html", "r")
     if f.mode == 'r':
       contents =f.read()
       new_contents = contents.replace("{link}", links)
