@@ -9,6 +9,7 @@ import sqlite3
 from datetime import datetime
 import pandas as pd
 from bokeh.plotting import figure, output_file, save, show
+import requests
 
 #_________________________________________________________________________________________________
 # Request handling
@@ -442,6 +443,18 @@ def response(date):
     conn.commit()
     conn.close()
     
+    WEATHER_API_KEY = "3404c75b6075824fcec1f084abdfe535"
+
+    r = requests.get("""http://api.openweathermap.org/data/2.5/weather?zip=02139&units=imperial&APPID=%s"""%WEATHER_API_KEY)
+    response = r.json()
+    temp = 'Temperature is '+str(response['main']['temp']) + ' degrees fahrenheit'
+    wind = 'Speed of wind is ' + str(response['wind']['speed'])+' miles/hour'
+    
+    if response['weather'][0]['main'] == 'Clouds':
+        gif = '<iframe src="https://giphy.com/embed/pjw5mc8Ze2mH5m5yZ6" width="320" height="240" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/gif-this-pjw5mc8Ze2mH5m5yZ6"></a></p>'
+    else:
+        gif = '<iframe src="https://giphy.com/embed/lI8YNZc734UH6" width="320" height="320" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/sunny-lI8YNZc734UH6"></a></p>'
+    
     #get all links
     links = ""
     boatnums = set()
@@ -456,6 +469,9 @@ def response(date):
       contents =f.read()
       new_contents = contents.replace("{link}", links)
       new_contents = new_contents.replace("{home}", home)
+      new_contents = new_contents.replace("{temp}", temp)
+      new_contents = new_contents.replace("{wind}", wind)
+      new_contents = new_contents.replace("{gif}", gif)
       f2=open(home+"ui.html", "w+")
       f2.write(new_contents)
       return new_contents
@@ -474,6 +490,19 @@ def response_no_param():
     conn.commit()
     conn.close()
     
+    WEATHER_API_KEY = "3404c75b6075824fcec1f084abdfe535"
+
+    r = requests.get("""http://api.openweathermap.org/data/2.5/weather?zip=02139&units=imperial&APPID=%s"""%WEATHER_API_KEY)
+    response = r.json()
+    temp = 'Temperature is '+str(response['main']['temp']) + ' degrees fahrenheit'
+    wind = 'Speed of wind is ' + str(response['wind']['speed'])+' miles/hour'
+    
+    if response['weather'][0]['main'] == 'Clouds':
+        gif = '<iframe src="https://giphy.com/embed/pjw5mc8Ze2mH5m5yZ6" width="320" height="240" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/gif-this-pjw5mc8Ze2mH5m5yZ6"></a></p>'
+    else:
+        gif = '<iframe src="https://giphy.com/embed/lI8YNZc734UH6" width="320" height="320" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/sunny-lI8YNZc734UH6"></a></p>'
+    
+    
     #get all links
     links = ""
     boatnums = set()
@@ -488,6 +517,9 @@ def response_no_param():
       contents =f.read()
       new_contents = contents.replace("{link}", links)
       new_contents = new_contents.replace("{home}", home)
+      new_contents = new_contents.replace("{temp}", temp)
+      new_contents = new_contents.replace("{wind}", wind)
+      new_contents = new_contents.replace("{gif}", gif)
       f2=open(home+"index.html", "w+")
       f2.write(new_contents)
       return new_contents
