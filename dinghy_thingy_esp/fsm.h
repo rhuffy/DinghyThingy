@@ -8,7 +8,7 @@
 #include "wifi_handler.h"
 
 #define MAX_READINGS 10
-#define BOAT_NUMBER 1
+#define BOAT_NUMBER 42
 
 #define RECORD_BUTTON_PIN 16
 #define UPLOAD_BUTTON_PIN 17

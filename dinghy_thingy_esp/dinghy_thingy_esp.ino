@@ -11,5 +11,7 @@
 #include <WiFi.h>
 // #include <WiFiClientSecure.h>
 
+#include <TinyGPS++.h>
+
 #include "FS.h"
 #include "SD.h"
