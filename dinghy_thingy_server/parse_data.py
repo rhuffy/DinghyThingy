@@ -516,6 +516,7 @@ def set_up_webpage_without_date(boatnum):
     
     return "<a href=\""+ boat_file +"\"> Boat "+str(boatnum)+"</a>"
 
+#gets weather data from api
 def get_weather():
     WEATHER_API_KEY = "3404c75b6075824fcec1f084abdfe535"
 
@@ -524,13 +525,12 @@ def get_weather():
     temp = 'Temperature is '+str(response['main']['temp']) + ' degrees fahrenheit'
     wind = 'Speed of wind is ' + str(response['wind']['speed'])+' miles/hour'
     
-    
-    
     if response['weather'][0]['main'] == 'Clouds':
-        gif = '<iframe src="https://giphy.com/embed/pjw5mc8Ze2mH5m5yZ6" width="320" height="240" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/gif-this-pjw5mc8Ze2mH5m5yZ6"></a></p>'
+    		gif = '<iframe src="https://giphy.com/embed/pjw5mc8Ze2mH5m5yZ6" width="320" height="240" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/gif-this-pjw5mc8Ze2mH5m5yZ6"></a></p>'
+    else if response['weather'][0]['main'] == 'Rain':
+    		gif = '<iframe src="https://giphy.com/embed/xUPGcAn10RE7mK84SY" width="480" height="480" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/xUPGcAn10RE7mK84SY">via GIPHY</a></p>'
     else:
-        gif = '<iframe src="https://giphy.com/embed/lI8YNZc734UH6" width="320" height="320" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/sunny-lI8YNZc734UH6"></a></p>'
-        
+    		gif = '<iframe src="https://giphy.com/embed/lI8YNZc734UH6" width="320" height="320" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/sunny-lI8YNZc734UH6"></a></p>'
     return temp, wind, gif
     
 #does same as response_no_param except only for data on specified date
