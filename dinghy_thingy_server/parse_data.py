@@ -527,7 +527,7 @@ def get_weather():
     
     if response['weather'][0]['main'] == 'Clouds':
     		gif = '<iframe src="https://giphy.com/embed/pjw5mc8Ze2mH5m5yZ6" width="320" height="240" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/gif-this-pjw5mc8Ze2mH5m5yZ6"></a></p>'
-    else if response['weather'][0]['main'] == 'Rain':
+    elif response['weather'][0]['main'] == 'Rain':
     		gif = '<iframe src="https://giphy.com/embed/xUPGcAn10RE7mK84SY" width="480" height="480" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/xUPGcAn10RE7mK84SY">via GIPHY</a></p>'
     else:
     		gif = '<iframe src="https://giphy.com/embed/lI8YNZc734UH6" width="320" height="320" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/sunny-lI8YNZc734UH6"></a></p>'
