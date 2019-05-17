@@ -11,8 +11,15 @@ The Dinghy Thingy is a small, portable device enclosed in a water-proof box that
 
 We were inspired to do this project because one of our team members is an avid sailor and mentioned how helpful it would be to have a device that can collect data about a boat when it’s on the water. While these types of programs do currently exist, they are typically specialized and do only one task, and are also ludicrously expensive, so we decided to make a version of our own. Our implementation uses an IMU to gather information about the heel of the boat and a GPS to track the path of the boat on the water. This data is then stored to an SD card and uploaded to our server once the internet is available, where this data is presented in a friendly, readable way using plots and potentially animations. The device is battery powered and optimized in such a way that it lasts several hours so that the sailor does not have to worry about it dying while they’re on the water.
 <center>
-	<video controls muted autoplay>
+	<video controls muted autoplay width="1000">
 		<source src="./img/Charles_River_Boat_Ride.mp4">
+	</video>
+</center>
+
+<center>
+	<img src="./img/tech.jpeg" width="600" />
+	<video controls muted autoplay width="600">
+		<source src="./img/tech.mov">
 	</video>
 </center>
 
@@ -135,7 +142,7 @@ In this project, we are not using any additional sensors or new parts. Our syste
 	<li><strong>SD Card</strong>: During the "Write to Flash" state the buffer would save the data into the SD memory and all the data from the buffer would be erased. An example of the SD Card we use can be found here: [SD]( https://www.amazon.com/SanDisk-Ultra-microSDXC-Memory-Adapter/dp/B073JWXGNT/ref=sr_1_3?hvadid=177219289831&hvdev=c&hvlocphy=9002029&hvnetw=g&hvpos=1t1&hvqmt=e&hvrand=2054804712481173564&hvtargid=kwd-4840975295&keywords=micro+sdhc+card&qid=1555230940&s=gateway&sr=8-3)
 		<ul>
 			<li>```sd_write(SENSOR_READING_T *data_buffer, int size)```:Given a buffer of sensor readings, and the size of that buffer, formats lines of SD card readings and appends those lines to the data file.</ul>
-			<li>```read_and_upload(fs::FS &fs, const char * path)```:Reads each line of the data file, constucting post requests of (20) records, and sending each request to the server.</ul>
+			<li>```read_and_upload(fs::FS &fs, const char * path)```:Reads each line of the data file, constucting post requests of (20) records, and sending each request to the server.</li>
 			<li>```writeFile(fs::FS &fs, const char * path, const char * message)```:Writes the provided string to the file on the SD card</li>
 			<li>```appendFile(fs::FS &fs, const char * path, const char * message)```:Appends the provided string to the file on the SD card</li>
 			<li>```readFile(fs::FS &fs, const char * path, char* output)```:Reads the entire file to the provided char buffer</li>
