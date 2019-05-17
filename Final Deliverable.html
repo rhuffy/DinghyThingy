@@ -7,7 +7,7 @@
 
 #Overview
 
-The Dinghy Thingy is a small, portable device enclosed in a water-proof box that would be mounted to the inside of a sailing boat. The device would collect data while the boat is on the water, and store said data to an SD card, after which it could be uploaded to our server, where our code would conduct helpful analysis and visualization. 
+The Dinghy Thingy is a small, portable device enclosed in a water-proof box that would be mounted to the inside of a sailing boat. The device would collect data while the boat is on the water, and store said data to an SD card, after which it could be uploaded to our server, where our code would conduct helpful analysis and visualization.
 
 We were inspired to do this project because one of our team members is an avid sailor and mentioned how helpful it would be to have a device that can collect data about a boat when it’s on the water. While these types of programs do currently exist, they are typically specialized and do only one task, and are also ludicrously expensive, so we decided to make a version of our own. Our implementation uses an IMU to gather information about the heel of the boat and a GPS to track the path of the boat on the water. This data is then stored to an SD card and uploaded to our server once the internet is available, where this data is presented in a friendly, readable way using plots and potentially animations. The device is battery powered and optimized in such a way that it lasts several hours so that the sailor does not have to worry about it dying while they’re on the water.
 <center>
@@ -72,7 +72,7 @@ We are planning on including more graphs in the future together with an animated
 
 ###Preview
 
-Our system consists can be divided into two parts: the Server side, which contains all the code regarding the permanent storage of the data and the visualization of that same data, and the ESP side, which is in charge of operating the state machine to sense data using the GPS and the IMU and store that data into an SD card while maintaining an efficient power consumption. Our Server-side code is written mainly in Python with some HTML code to make the website more accessible. All of the ESP side code is written in C++ since we are using an Arduino as the microprocessor of our device. To have our code functioning, we first needed to write function capable of getting the data from the IMU and GPS and saving it into the SD Card. Once that was complete, we then needed to look for ways to read that data from the SD cards and sending it in POST requests to the server. After that step, we created a database in the server together with a website capable of taking data from the database and displaying it in a user-friendly way. 
+Our system consists can be divided into two parts: the Server side, which contains all the code regarding the permanent storage of the data and the visualization of that same data, and the ESP side, which is in charge of operating the state machine to sense data using the GPS and the IMU and store that data into an SD card while maintaining an efficient power consumption. Our Server-side code is written mainly in Python with some HTML code to make the website more accessible. All of the ESP side code is written in C++ since we are using an Arduino as the microprocessor of our device. To have our code functioning, we first needed to write function capable of getting the data from the IMU and GPS and saving it into the SD Card. Once that was complete, we then needed to look for ways to read that data from the SD cards and sending it in POST requests to the server. After that step, we created a database in the server together with a website capable of taking data from the database and displaying it in a user-friendly way.
 
 <center>
   <img src="./img/Device.jpg" width="300" />
@@ -114,6 +114,12 @@ In this project, we are not using any additional sensors or new parts. Our syste
 			<li>```char_append(char* buff, char c, uint16_t buff_size)```: This function is used to add the necessary characters to the http request before sending it. We have been using this function throughout the semester in the class</li>
 		</ul>
 	</li>
+	<li><strong>FSM</strong>: Handles all state transitions
+		<ul>
+			<li>```set_state(STATE_T new_state)```:Transitions to the requested new state by calling that state's "enter_state" method</li>
+			<li>```advance_state()```:Calls the correct "update_state" method based on the current state</li>
+		</ul>
+	</li>
 	<li><strong>GPS Module</strong>: During the "Sense" state the GPS will transmit the coordinates of the boat as well as the current time
 		<ul>
 			<li>```init_gps()```:Initializes the gps when the esp starts</li>
@@ -127,7 +133,15 @@ In this project, we are not using any additional sensors or new parts. Our syste
 		</ul>
 	</li>
 	<li><strong>SD Card</strong>: During the "Write to Flash" state the buffer would save the data into the SD memory and all the data from the buffer would be erased. An example of the SD Card we use can be found here: [SD]( https://www.amazon.com/SanDisk-Ultra-microSDXC-Memory-Adapter/dp/B073JWXGNT/ref=sr_1_3?hvadid=177219289831&hvdev=c&hvlocphy=9002029&hvnetw=g&hvpos=1t1&hvqmt=e&hvrand=2054804712481173564&hvtargid=kwd-4840975295&keywords=micro+sdhc+card&qid=1555230940&s=gateway&sr=8-3)
-	</li>
+		<ul>
+			<li>```sd_write(SENSOR_READING_T *data_buffer, int size)```:Given a buffer of sensor readings, and the size of that buffer, formats lines of SD card readings and appends those lines to the data file.</ul>
+			<li>```read_and_upload(fs::FS &fs, const char * path)```:Reads each line of the data file, constucting post requests of (20) records, and sending each request to the server.</ul>
+			<li>```writeFile(fs::FS &fs, const char * path, const char * message)```:Writes the provided string to the file on the SD card</li>
+			<li>```appendFile(fs::FS &fs, const char * path, const char * message)```:Appends the provided string to the file on the SD card</li>
+			<li>```readFile(fs::FS &fs, const char * path, char* output)```:Reads the entire file to the provided char buffer</li>
+			<li>```init_sd()```:Initiates connection to the SD card and mounts the filesystem. Checks if the data file exists, and create if it does not exist</li>
+		</ul>
+  </li>
 	<li>
 		<strong>Server Data Handler</strong>: In charge of creating the database from the POST Request
 		<ul>
@@ -136,7 +150,7 @@ In this project, we are not using any additional sensors or new parts. Our syste
 			<li>```parse_csv_data_line(line, categories)```:Parses a line of data from a POST request</li>
 			<li>```parse_csv_data(data, categories)```:Parses data from a POST request by splitting it up into lines and sending it to parse_csv_data_line</li>
 			<li>```create_database(categories)```:Creates a database (if necessary) for storing data given a list of categories to use as columns in the table</li>
-			<li>```insert_into_database(data)```:Inserts a line of data into the database</li>	
+			<li>```insert_into_database(data)```:Inserts a line of data into the database</li>
 			<li>```get_dateandboat_data(date, boatnum)```:Given a date and boat number, creates a data frame of that boat’s data from that day from the database</li>
 			<li>```get_boat_data(boatnum)```:Given a boat number, creates a data frame of that boat’s data from the database</li>
 			<li>```averaging_filter(inputs, stored_values, order)```:Filter to eliminate noise in the readings and get more accurate data</li>
@@ -181,7 +195,7 @@ In this project, we are not using any additional sensors or new parts. Our syste
 
 Boat trips vary in length depending on the desired course, weather conditions or to enjoy of a sunny day in the water. Our team took that into consideration when designing our product, making it efficient enough to be taken into the sea for more than 8 hours with a continuous recording of the data.
 
-Our battery has a capacity when fully charged of around 1500 mAH with a nominal voltage of 3.7V but it usually fluctuates from 3.2V to 4.2V. Our device has three central states which utilizes different components with different consumption. The table below shows the various states and the current consumed during each of those states: 
+Our battery has a capacity when fully charged of around 1500 mAH with a nominal voltage of 3.7V but it usually fluctuates from 3.2V to 4.2V. Our device has three central states which utilizes different components with different consumption. The table below shows the various states and the current consumed during each of those states:
 
 <center>
 	<table>
@@ -216,7 +230,7 @@ Note that these calculations are done using average rates of upload based on exp
 
 # Design Challenges
 
-The Dinghy Thingy team went through a whole process of growth when designing and creating this project. As stated in the introduction, we decided to embark in the creation of this project due to the passion of one of the members with sailing and his desire to have an accessible device to record his performance on every trip. Dinghy Thingy is a project that allows for the inclusion of an infinite amount of functionalities, therefore keeping it accessible was one of our biggest challenges. We first started with the idea of including a screen that was always showcasing the data being recorded so that the user could be aware of how he is performing on the trip. Although at first, this seemed like an excellent idea, we did not take into consideration the capabilities of our battery and having the screen on during the whole trip would considerably reduce the lifetime of the device, and therefore not making it viable. Once that was discarded, we had to decide on how often we had to sense data during the trip. This is a crucial step in the design because it would not only determine how much data is going to be stored in the SD and then displayed on the website, but it would also determine the power consumption of our device since it would have the sensors working more time. We ended up deciding on collecting data once every second since it had the perfect balance between a viable amount of data and a battery life of almost three times the average duration of a boat trip. Apart from those last two challenges, most of the decisions we had to make were on the website part of our project and how we would like to display the data. Since we have limited time for this project, we decided to show only the necessary data like position and tilt, and later expand on other areas like the velocity of the boat, as well as an animated version of the graphs. 
+The Dinghy Thingy team went through a whole process of growth when designing and creating this project. As stated in the introduction, we decided to embark in the creation of this project due to the passion of one of the members with sailing and his desire to have an accessible device to record his performance on every trip. Dinghy Thingy is a project that allows for the inclusion of an infinite amount of functionalities, therefore keeping it accessible was one of our biggest challenges. We first started with the idea of including a screen that was always showcasing the data being recorded so that the user could be aware of how he is performing on the trip. Although at first, this seemed like an excellent idea, we did not take into consideration the capabilities of our battery and having the screen on during the whole trip would considerably reduce the lifetime of the device, and therefore not making it viable. Once that was discarded, we had to decide on how often we had to sense data during the trip. This is a crucial step in the design because it would not only determine how much data is going to be stored in the SD and then displayed on the website, but it would also determine the power consumption of our device since it would have the sensors working more time. We ended up deciding on collecting data once every second since it had the perfect balance between a viable amount of data and a battery life of almost three times the average duration of a boat trip. Apart from those last two challenges, most of the decisions we had to make were on the website part of our project and how we would like to display the data. Since we have limited time for this project, we decided to show only the necessary data like position and tilt, and later expand on other areas like the velocity of the boat, as well as an animated version of the graphs.
 
 
 <center>
