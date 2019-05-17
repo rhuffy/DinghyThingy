@@ -9,7 +9,8 @@
 #include <cstdlib>
 #include <TFT_eSPI.h>
 #include <WiFi.h>
-// #include <WiFiClientSecure.h>
+
+#include <sys/time.h>
 
 #include <TinyGPS++.h>
 

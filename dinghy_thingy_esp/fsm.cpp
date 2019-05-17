@@ -193,7 +193,8 @@ void enter_state_ready(){
 void update_state_ready(){
 
   if(record_bv == 1){
-    sd_write(data_buffer, MAX_READINGS);
+    sd_write(data_buffer, data_buffer_index);
+    data_buffer_index = 0;
     set_state(STATE_ROOT);
   }
 
@@ -213,6 +214,11 @@ void enter_state_sense(){
 
 void update_state_sense(){
   // get sensor readings
+  if(record_bv == 1){
+    sd_write(data_buffer, data_buffer_index);
+    data_buffer_index = 0;
+    set_state(STATE_ROOT);
+  }
 
   SENSOR_READING_T current_reading = {
     .gps = read_gps(),
@@ -240,8 +246,8 @@ void enter_state_writeflash(){
 void update_state_writeflash(){
 
 
-  data_buffer_index = 0;
   sd_write(data_buffer, MAX_READINGS);
+  data_buffer_index = 0;
 
   set_state(STATE_READY);
 }

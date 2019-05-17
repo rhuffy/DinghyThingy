@@ -5,6 +5,7 @@
 #include <Wire.h>
 #include <string.h>
 #include <TinyGPS++.h>
+#include <sys/time.h>
 
 #include "sensor_types.h"
 
